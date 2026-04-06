@@ -1,0 +1,1843 @@
+/*
+ * ============================================
+ * STYLE FINAL - UP CIRENG (DENGAN ANIMASI 3D & SCROLL)
+ * ============================================
+ */
+
+/* 1. Variabel Warna & Font */
+:root {
+    --primary-color: #f97316;
+    --primary-hover: #ea580c;
+    --background-gradient: linear-gradient(135deg, #7c88e8 0%, #525ddc 100%);
+    --card-bg: #ffffff;
+    --text-on-dark: #ffffff;
+    --text-on-light: #1f2937;
+    --text-muted: #6b7280;
+    --border-color: #e5e7eb;
+    --shadow: 0 10px 30px rgba(40, 40, 90, 0.1);
+    --font-family: "Poppins", sans-serif;
+}
+
+/* 2. Pengaturan Dasar & Reset */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+html {
+    scroll-behavior: smooth;
+}
+body {
+    font-family: var(--font-family);
+    background: var(--background-gradient) fixed;
+    color: var(--text-on-dark);
+    margin: 0;
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+[hidden] {
+    display: none !important;
+}
+.muted-text {
+    opacity: 0.8;
+}
+
+/* 3. Layout & Animasi Scroll */
+.container {
+    width: min(1120px, 92%);
+    margin-inline: auto;
+}
+.section {
+    padding: 4rem 0;
+    scroll-margin-top: 80px;
+    opacity: 0;
+    transform: translateY(40px);
+    transition:
+        opacity 0.6s ease-out,
+        transform 0.6s ease-out;
+}
+.section.in-view {
+    opacity: 1;
+    transform: translateY(0);
+}
+.section-head {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+.section-head h2 {
+    font-size: 2.2rem;
+}
+.section-head .accent {
+    color: #ffd166;
+}
+.card {
+    background: var(--card-bg);
+    color: var(--text-on-light);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+/* 4. Preloader & Ticker */
+#preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--background-gradient);
+    display: grid;
+    place-items: center;
+    transition:
+        opacity 0.4s ease,
+        visibility 0.4s ease;
+}
+#preloader.done {
+    opacity: 0;
+    visibility: hidden;
+}
+.preloader-ring {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top-color: var(--text-on-dark);
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.ticker {
+    background: rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(5px);
+    padding: 0.5rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.ticker__track {
+    display: inline-block;
+    animation: scroll-left 20s linear infinite;
+    padding-left: 100%;
+}
+@keyframes scroll-left {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* 5. Header & Navigasi */
+.header {
+    position: sticky;
+    top: 12px;
+    z-index: 40;
+    padding: 0 1rem;
+}
+.nav {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 14px;
+    padding: 0 1rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    max-width: 1120px;
+    margin: auto;
+}
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text-on-light);
+    margin-right: auto;
+    font-weight: 700;
+}
+.nav-links {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+.nav-links a,
+.nav-links button {
+    color: var(--text-on-light);
+    text-decoration: none;
+    font-weight: 500;
+    background: none;
+    border: none;
+    font-family: var(--font-family);
+    cursor: pointer;
+    font-size: 1rem;
+}
+.hamburger {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-on-light);
+    /* ukuran klik enak */
+    padding: 8px 10px;
+    line-height: 0;
+}
+/* === Garis hamburger (3 bar) + animasi X === */
+.hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--text-on-light);
+    border-radius: 2px;
+    margin: 5px 0;
+    transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
+}
+/* saat menu kebuka, ubah jadi X */
+.nav-links.open + .hamburger span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+.nav-links.open + .hamburger span:nth-child(2) {
+    opacity: 0;
+}
+.nav-links.open + .hamburger span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* 6. Hero Section */
+.hero {
+    padding: 3rem 0;
+}
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 0.8fr;
+    gap: 3rem;
+    align-items: center;
+}
+.hero-copy h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.2;
+}
+.hero-media {
+    perspective: 1000px;
+}
+.hero-media img {
+    width: 90%;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transition: transform 0.4s ease;
+    transform: rotateX(10deg) rotateY(-10deg) rotateZ(3deg);
+}
+.hero-media:hover img {
+    transform: rotateX(0) rotateY(0) rotateZ(0) scale(1.05);
+}
+
+/* 7. Menu */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    perspective: 1500px;
+}
+/* --- Tambahan: Paksa 2 kolom di layar kecil agar tidak kepanjangan --- */
+@media (max-width: 640px) {
+    .menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    .card.menu img {
+        height: 140px;
+    }
+    .card.menu .name {
+        font-size: 1rem;
+        margin: 0.75rem;
+    }
+    .price strong {
+        font-size: 1.05rem;
+    }
+}
+
+.card.menu {
+    padding: 0;
+    overflow: hidden;
+    text-align: center;
+    transform-style: preserve-3d;
+    transition:
+        transform 0.4s ease,
+        box-shadow 0.4s ease;
+}
+.card.menu:hover {
+    transform: translateY(-10px) rotateY(5deg) scale(1.03);
+    box-shadow: 0 20px 40px rgba(40, 40, 90, 0.2);
+}
+.card.menu img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+.card.menu .name {
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin: 1rem;
+}
+.card.menu .desc {
+    color: var(--text-muted);
+    padding: 0 1rem 0.5rem;
+}
+.card.menu .price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+.price strong {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+}
+.price .qty {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.price .qty button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: #f9fafb;
+    cursor: pointer;
+}
+.price .qty input {
+    width: 40px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.25rem;
+}
+.pay-note {
+    margin: 8px 0 16px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    color: var(--text-on-dark);
+    text-align: center;
+}
+
+/* 7b. Grid kecil */
+.pay-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+/* Tablet turun ke 2 kolom */
+@media (max-width: 1024px) {
+    .pay-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+/* HP juga tetap 2 kolom (tidak 1 kolom lagi) */
+@media (max-width: 520px) {
+    .pay-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 360px) {
+    .pay-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+}
+
+/* Ikon metode pembayaran warna kuning */
+.card.pay i {
+    color: #facc15; /* kuning */
+    background: #fef9c3; /* kuning muda */
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 1.35rem;
+}
+
+/* 8. Kontak & Peta */
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+.contact-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0 0;
+}
+.contact-card li {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.contact-card i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    width: 30px;
+    text-align: center;
+}
+.contact-card a {
+    color: var(--text-on-light);
+    text-decoration: none;
+}
+.map-embed {
+    width: 100%;
+    height: 250px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+.map-embed iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+/* 9. Modal & Drawer */
+dialog {
+    border: none;
+    padding: 0;
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    max-width: 500px;
+    width: 90vw;
+    color: var(--text-on-light);
+}
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+.modal-content {
+    padding: 1.5rem;
+    position: relative;
+}
+dialog .close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+.drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(400px, 92vw);
+    background: var(--card-bg);
+    color: var(--text-on-light);
+    z-index: 1100;
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.2);
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+}
+.drawer.open {
+    transform: translateX(0);
+}
+.drawer-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.drawer-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+.drawer-body .empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 3rem 0;
+}
+.drawer-foot {
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+    background: #f9fafb;
+}
+
+/* Rows utk script.js */
+.cart-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.cart-row .title {
+    font-weight: 600;
+}
+.cart-row .controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.cart-row .controls button {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: #f9fafb;
+    cursor: pointer;
+}
+.cart-row .controls .q {
+    min-width: 20px;
+    text-align: center;
+}
+.cart-row .sub {
+    font-weight: 600;
+}
+.co-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.25rem 0;
+}
+
+/* 10. Form dasar */
+.form h2 {
+    margin-top: 0;
+    text-align: center;
+}
+.form .field {
+    margin-bottom: 1rem;
+}
+.form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+.form input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: #f9fafb;
+    font-family: var(--font-family);
+}
+.checkout-summary {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    display: grid;
+    gap: 0.5rem;
+}
+.checkout-total {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+.checkout-summary div span {
+    font-weight: 600;
+}
+.form .btn-block {
+    margin-top: 1.5rem;
+}
+
+/* 11. Tombol & FAB */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-primary {
+    background: var(--primary-color);
+    color: var(--card-bg);
+    box-shadow: 0 4px 20px rgba(249, 115, 22, 0.3);
+}
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+}
+.btn-block {
+    width: 100%;
+}
+.btn-ghost {
+    background: #fff;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+}
+.btn-ghost:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+}
+.btn-sm {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.cart-fab {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 1.5rem;
+    z-index: 40;
+    background: var(--primary-color);
+    color: var(--card-bg);
+    padding: 12px 20px;
+    border-radius: 99px;
+    border: none;
+    font-weight: 600;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+.chip {
+    background: var(--card-bg);
+    color: var(--primary-color);
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 0.8rem;
+}
+
+/* 12. Footer */
+.footer {
+    text-align: center;
+    padding: 2rem 0;
+    color: var(--text-on-dark);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 2rem;
+}
+
+/* 13. Responsif (Navbar & grid) */
+@media (max-width: 860px) {
+    .section {
+        padding: 3rem 0;
+    }
+    .nav {
+        position: relative;
+    }
+    .nav-links {
+        display: none;
+        position: absolute;
+        right: 1rem;
+        top: 62px;
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .nav-links.open {
+        display: flex;
+    }
+    .hamburger {
+        display: block;
+    }
+    .hero-grid,
+    .contact-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    .hero-copy {
+        order: 2;
+    }
+    .hero-media {
+        order: 1;
+        margin-bottom: 2rem;
+    }
+    .hero-copy h1 {
+        font-size: 2rem;
+    }
+    .section-head h2 {
+        font-size: 1.8rem;
+    }
+}
+
+/* 14. FAB responsif */
+@media (max-width: 768px) {
+    .cart-fab {
+        opacity: 0;
+        transform: translate(-50%, 100px);
+        pointer-events: none;
+        transition:
+            opacity 0.4s ease,
+            transform 0.4s ease;
+    }
+    .cart-fab.show {
+        opacity: 1;
+        transform: translateX(-50%);
+        pointer-events: auto;
+    }
+}
+
+/*
+ * ============================================
+ * 15. TESTIMONI (ANIMASI)
+ * ============================================
+ */
+@keyframes slideInFromLeft3D {
+    0% {
+        opacity: 0;
+        transform: translateX(-100%) rotateY(60deg) scale(0.9);
+        transform-origin: left center;
+    }
+    80% {
+        opacity: 1;
+        transform: translateX(10px) rotateY(-5deg) scale(1.02);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) rotateY(0) scale(1);
+    }
+}
+.testimonial-card {
+    background: var(--card-bg);
+    color: var(--text-on-light);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    transform-style: preserve-3d;
+    transition:
+        transform 0.4s ease,
+        box-shadow 0.4s ease;
+    opacity: 1;
+    transform: translateZ(0);
+}
+.testimonial-card.new-testimonial {
+    animation: slideInFromLeft3D 0.7s ease-out forwards;
+}
+.testimonial-card:hover {
+    transform: translateY(-8px) rotateY(4deg) scale(1.03);
+    box-shadow: 0 20px 40px rgba(40, 40, 90, 0.18);
+}
+.testimonial-body {
+    font-style: italic;
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-left: 1.5rem;
+    color: var(--text-muted);
+}
+.testimonial-body::before {
+    content: "“";
+    font-family: Georgia, serif;
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    opacity: 0.3;
+    position: absolute;
+    left: -0.5rem;
+    top: -1rem;
+}
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+.author-avatar img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-color);
+}
+.author-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* ==== Header FX (tetap) ==== */
+.header {
+    position: static !important;
+    top: auto !important;
+    z-index: auto !important;
+    margin-top: 12px;
+}
+.nav-links #userName {
+    color: var(--text-on-light) !important;
+    opacity: 0.85;
+    font-weight: 600;
+    margin-right: 0.25rem;
+}
+.nav {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: saturate(140%) blur(8px);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(255, 255, 255, 0.65) inset;
+    position: relative;
+    overflow: hidden;
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+.nav:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 16px 40px rgba(0, 0, 0, 0.16),
+        0 0 0 1px rgba(255, 255, 255, 0.65) inset;
+}
+.nav::after {
+    content: "";
+    position: absolute;
+    left: -20%;
+    top: -120%;
+    width: 60%;
+    height: 300%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(249, 115, 22, 0.14),
+        transparent 60%
+    );
+    transform: rotate(12deg);
+    pointer-events: none;
+}
+.nav-links a {
+    position: relative;
+    padding: 8px 10px;
+    border-radius: 10px;
+}
+.nav-links a::after {
+    content: "";
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 6px;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--primary-color),
+        transparent
+    );
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.25s ease;
+}
+.nav-links a:hover::after {
+    transform: scaleX(1);
+}
+.nav-links a:hover {
+    background: rgba(249, 115, 22, 0.08);
+}
+
+/* =========================================================
+   16. CUSTOM SELECT & PAYMENT INFO (GLOW + RIPPLE + RESPONSIF)
+   ========================================================= */
+.select-fx {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    padding: 12px 44px 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background:
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>")
+            no-repeat right 12px center / 18px,
+        #f9fafb;
+    font-family: var(--font-family);
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.06s ease,
+        background-color 0.2s ease;
+}
+.select-fx:hover {
+    border-color: #cbd5e1;
+    background-color: #f3f4f6;
+}
+.select-fx:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+    transform: translateY(-1px);
+}
+
+/* Kartu informasi pembayaran — glassy + glow */
+.payment-info {
+    margin-top: 0.75rem;
+    border-radius: 14px;
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.88),
+        rgba(255, 255, 255, 0.96)
+    );
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow:
+        0 12px 30px rgba(17, 24, 39, 0.06),
+        0 0 0 1px rgba(255, 255, 255, 0.7) inset;
+    color: var(--text-on-light);
+    padding: 14px 12px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.22s ease;
+}
+.payment-info::after {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    transform: rotate(12deg);
+    background: radial-gradient(
+        ellipse at center,
+        rgba(249, 115, 22, 0.08),
+        transparent 55%
+    );
+    pointer-events: none;
+    filter: blur(10px);
+}
+.payment-info .pi-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+.payment-info .pi-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+.payment-info .pi-row:last-child {
+    border-bottom: 0;
+}
+.payment-info .pi-label {
+    color: var(--text-muted);
+}
+.payment-info .pi-right {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.payment-info .pi-value {
+    background: #f3f4f6;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+.payment-info .pi-note {
+    margin: 0.5rem 2px 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Tombol interaktif + ripple */
+.payment-info .copy-btn,
+.bank-tab {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    padding: 0.55rem 0.85rem;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    transition:
+        transform 0.06s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+}
+.payment-info .copy-btn:hover,
+.bank-tab:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+    border-color: #e2e8f0;
+}
+.payment-info .copy-btn:active,
+.bank-tab:active {
+    transform: translateY(0);
+}
+.payment-info .copy-btn::after,
+.bank-tab::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+        circle at var(--x, 50%) var(--y, 50%),
+        rgba(249, 115, 22, 0.25),
+        transparent 45%
+    );
+    opacity: 0;
+    transition:
+        opacity 0.45s ease,
+        transform 0.45s ease;
+    transform: scale(0.2);
+}
+.payment-info .copy-btn:active::after,
+.bank-tab:active::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Tabs Bank/E-Wallet */
+.bank-tabs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 0.25rem 0 0.5rem;
+}
+.bank-tab {
+    font-size: 0.9rem;
+}
+.bank-tab.active,
+.wallet-tab.active {
+    background: rgba(249, 115, 22, 0.08);
+    border-color: var(--primary-color);
+    color: #111827;
+}
+
+/* QRIS */
+.qris-box {
+    display: grid;
+    place-items: center;
+    padding: 0.5rem;
+}
+.qris-box img {
+    width: min(260px, 80%);
+    max-width: 360px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsif: detail pembayaran nyaman di HP */
+@media (max-width: 520px) {
+    .payment-info {
+        padding: 12px 10px;
+        border-radius: 12px;
+    }
+    .payment-info .pi-row {
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
+    }
+    .payment-info .pi-label {
+        font-size: 0.9rem;
+    }
+    .payment-info .pi-right {
+        gap: 0.4rem;
+    }
+    .payment-info .pi-value {
+        width: 100%;
+        text-align: left;
+    }
+    .bank-tab,
+    .payment-info .copy-btn {
+        padding: 0.65rem 0.9rem;
+        border-radius: 12px;
+    }
+}
+
+/* =========================================================
+   17. CUSTOMER & ADMIN DASHBOARD — BASE (tetap dipakai keduanya)
+   ========================================================= */
+body.dashboard-body {
+    background: #f8f9fa;
+    color: var(--text-on-light);
+}
+.dashboard-main {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+}
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    color: var(--text-on-light);
+}
+.dashboard-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+}
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.stat-card i {
+    font-size: 1.5rem;
+    padding: 1rem;
+    border-radius: 50%;
+    color: var(--primary-color);
+    background: #fff5ed;
+}
+.stat-card p {
+    margin: 0;
+    color: var(--text-muted);
+}
+.stat-card strong {
+    font-size: 1.75rem;
+    color: var(--text-on-light);
+}
+.orders-list-container {
+    max-width: 800px;
+    margin: auto;
+}
+.card.order-card {
+    margin-bottom: 1.5rem;
+    border-left: 5px solid;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+.card.order-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+.order-card.status-pending {
+    border-color: #f59e0b;
+}
+.order-card.status-processing {
+    border-color: #3b82f6;
+}
+.order-card.status-shipping {
+    border-color: #8b5cf6;
+}
+.order-card.status-completed {
+    border-color: #10b981;
+}
+.order-card.status-cancelled {
+    border-color: #ef4444;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.order-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+.order-header p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+.status-pill {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 99px;
+    background: #f3f4f6;
+}
+.order-body {
+    padding: 1rem 0;
+}
+.order-body h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    color: var(--text-muted);
+}
+.order-body ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+.order-footer strong {
+    font-size: 1.25rem;
+    color: var(--primary-color);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+.progress-fill {
+    height: 100%;
+    background: var(--primary-color);
+    transition: width 0.5s ease;
+    border-radius: 3px;
+}
+
+.empty-card {
+    text-align: center;
+    padding: 3rem;
+}
+.empty-card i {
+    font-size: 3rem;
+    color: #cbd5e1;
+    margin-bottom: 1rem;
+}
+.empty-card h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+.empty-card p {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+
+/* Notifikasi */
+#notification-area {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 1000;
+}
+.notification {
+    background-color: var(--text-on-light);
+    color: var(--card-bg);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+    transform: translateX(120%);
+    transition: transform 0.3s ease-in-out;
+}
+.notification.show {
+    transform: translateX(0);
+}
+
+/* =========================================================
+   VARIAN ADMIN (tegas, fungsional, kontras tinggi)
+   Tambahkan kelas pada body: .dashboard-body.admin
+   ========================================================= */
+.dashboard-body.admin {
+    background: #f1f5f9; /* Latar belakang lebih netral dan dingin */
+}
+.dashboard-body.admin .dashboard-header h1 {
+    letter-spacing: 0.1px;
+    font-weight: 700;
+}
+/* Stat card dengan ikon biru profesional */
+.dashboard-body.admin .stats-grid .stat-card i {
+    background: #e0e7ff; /* Biru muda */
+    color: #4338ca; /* Biru indigo tegas */
+}
+/* Kartu pesanan lebih tajam dan bersih */
+.dashboard-body.admin .card.order-card {
+    border-left-width: 4px;
+    border-radius: 8px; /* Sudut lebih tajam */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0; /* Border tipis untuk definisi */
+    background: #ffffff;
+}
+.dashboard-body.admin .card.order-card:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+.dashboard-body.admin .order-header h3 {
+    font-weight: 700;
+    color: #1e293b;
+}
+/* Pil status fungsional dengan warna indikatif */
+.dashboard-body.admin .status-pill {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.dashboard-body.admin .order-card.status-pending .status-pill {
+    background: #fef3c7;
+    color: #92400e;
+}
+.dashboard-body.admin .order-card.status-processing .status-pill {
+    background: #dbeafe;
+    color: #1e40af;
+}
+.dashboard-body.admin .order-card.status-shipping .status-pill {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+.dashboard-body.admin .order-card.status-completed .status-pill {
+    background: #dcfce7;
+    color: #166534;
+}
+.dashboard-body.admin .order-card.status-cancelled .status-pill {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.dashboard-body.admin .progress-bar {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 4px;
+}
+.dashboard-body.admin .progress-fill {
+    background: #4f46e5; /* Biru indigo yang konsisten */
+}
+
+/* =========================================================
+   VARIAN CUSTOMER / PESANAN SAYA (lembut, branded, visual)
+   Tambahkan kelas pada body: .dashboard-body.customer
+   ========================================================= */
+.dashboard-body.customer {
+    background:
+        radial-gradient(
+            900px 500px at 100% -10%,
+            rgba(255, 148, 66, 0.08),
+            transparent 60%
+        ),
+        #f8fafc;
+}
+
+/* Stat card dengan warna brand (dari versi sebelumnya) */
+.dashboard-body.customer .stats-grid .stat-card i {
+    background: #fff7ed; /* Oranye lembut */
+    color: var(--primary-hover); /* Oranye brand */
+}
+
+/* Kartu pesanan lebih organik dan lembut (dari snippet user) */
+.dashboard-body.customer .card.order-card {
+    transition: all 0.2s ease-in-out;
+    border-left-width: 6px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #ffffff, #fcfcff);
+    box-shadow:
+        0 4px 6px -1px rgba(2, 6, 23, 0.06),
+        0 2px 4px -1px rgba(2, 6, 23, 0.03);
+}
+.dashboard-body.customer .card.order-card:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 12px 22px -10px rgba(2, 6, 23, 0.18),
+        0 6px 12px -8px rgba(2, 6, 23, 0.12);
+}
+
+/* Highlight halus sesuai status (dari snippet user) */
+.dashboard-body.customer .order-card.status-NEW {
+    border-color: #f59e0b;
+    background-image: linear-gradient(
+        90deg,
+        rgba(245, 158, 11, 0.06),
+        rgba(245, 158, 11, 0) 35%
+    );
+}
+.dashboard-body.customer .order-card.status-COOKING {
+    border-color: #3b82f6;
+    background-image: linear-gradient(
+        90deg,
+        rgba(59, 130, 246, 0.06),
+        rgba(59, 130, 246, 0) 35%
+    );
+}
+.dashboard-body.customer .order-card.status-DELIVERY {
+    border-color: #8b5cf6;
+    background-image: linear-gradient(
+        90deg,
+        rgba(139, 92, 246, 0.06),
+        rgba(139, 92, 246, 0) 35%
+    );
+}
+.dashboard-body.customer .order-card.status-DONE,
+.dashboard-body.customer .order-card.status-PAID {
+    border-color: #10b981;
+    background-image: linear-gradient(
+        90deg,
+        rgba(16, 185, 129, 0.06),
+        rgba(16, 185, 129, 0) 35%
+    );
+}
+.dashboard-body.customer .order-card.status-CANCEL {
+    border-color: #ef4444;
+    background-image: linear-gradient(
+        90deg,
+        rgba(239, 68, 68, 0.06),
+        rgba(239, 68, 68, 0) 35%
+    );
+}
+
+/* Progress bar yang lebih tebal dan modern (dari snippet user) */
+.dashboard-body.customer .progress-bar {
+    height: 10px;
+    background: #eef2f7;
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+.dashboard-body.customer .progress-fill {
+    height: 100%;
+    transition: width 0.5s ease-out;
+    background: linear-gradient(90deg, #fb923c, #f97316);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+/* Tombol di state kosong lebih menonjol (dari versi sebelumnya) */
+.dashboard-body.customer .empty-card a.btn,
+.dashboard-body.customer .empty-card .btn {
+    box-shadow: 0 8px 18px -6px rgba(234, 88, 12, 0.45);
+}
+
+/* Header sedikit glassy (dari snippet user) */
+.dashboard-body.customer header.bg-white {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: saturate(140%) blur(6px);
+}
+
+/* =========================================================
+   OPSIONAL: alias class untuk kode status uppercase (jika dipakai di FE lain)
+   ========================================================= */
+.order-card.status-NEW {
+    border-color: #f59e0b;
+}
+.order-card.status-COOKING {
+    border-color: #3b82f6;
+}
+.order-card.status-DELIVERY {
+    border-color: #8b5cf6;
+}
+.order-card.status-DONE,
+.order-card.status-PAID {
+    border-color: #10b981;
+}
+.order-card.status-CANCEL {
+    border-color: #ef4444;
+}
+
+/* =========================================================
+   18. EXTRA UI: Toggle Matang/Mentah + Fancy Close Button
+   ========================================================= */
+
+/* Toggle Matang/Mentah (di keranjang) */
+.prep-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    flex-wrap: wrap;
+}
+.prep-btn {
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--border-color);
+    background: #fff;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition:
+        transform 0.06s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+.prep-btn:hover {
+    background: #f9fafb;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+}
+.prep-btn:active {
+    transform: translateY(0) scale(0.96);
+}
+.prep-btn.active {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+    box-shadow: 0 8px 22px rgba(249, 115, 22, 0.25);
+}
+
+/* Fancy Close Button (X) di Drawer Cart */
+.drawer-head .close,
+#closeDrawer {
+    appearance: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #e5e7eb;
+    background: rgba(255, 255, 255, 0.96);
+    color: #0f172a;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        0 0 0 1px rgba(255, 255, 255, 0.7) inset;
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease,
+        background-color 0.25s ease;
+}
+.drawer-head .close > *,
+#closeDrawer > * {
+    pointer-events: none;
+}
+.drawer-head .close:hover,
+#closeDrawer:hover {
+    transform: translateY(-2px) rotate(-6deg);
+    box-shadow:
+        0 14px 30px rgba(0, 0, 0, 0.16),
+        0 0 0 1px rgba(255, 255, 255, 0.75) inset;
+    border-color: #e2e8f0;
+}
+.drawer-head .close:active,
+#closeDrawer:active {
+    transform: translateY(0) rotate(0) scale(0.96);
+}
+.drawer-head .close::before,
+#closeDrawer::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 12px;
+    background: conic-gradient(
+        from 0deg,
+        rgba(249, 115, 22, 0.22),
+        transparent 30%,
+        transparent 70%,
+        rgba(99, 102, 241, 0.22)
+    );
+    filter: blur(12px);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+.drawer-head .close:hover::before,
+#closeDrawer:hover::before {
+    opacity: 0.85;
+}
+.drawer-head .close::after,
+#closeDrawer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+        circle at var(--x, 50%) var(--y, 50%),
+        rgba(249, 115, 22, 0.22),
+        transparent 45%
+    );
+    opacity: 0;
+    transform: scale(0.2);
+    transition:
+        transform 0.45s ease,
+        opacity 0.45s ease;
+}
+.drawer-head .close:active::after,
+#closeDrawer:active::after {
+    opacity: 1;
+    transform: scale(1);
+}
+@media (max-width: 520px) {
+    .drawer-head .close,
+    #closeDrawer {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+    }
+}
+
+/* Scrim & Toast (biar kelihatan saat drawer/alert) */
+#scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 1000;
+}
+.toast {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%);
+    background: #fdba02;
+    color: #fff;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+.toast.show {
+    opacity: 1;
+}
+.toast.error {
+    background: #b91c1c;
+}
+/* --- HAMBURGER FIX --- */
+@media (max-width: 860px) {
+    .nav {
+        overflow: visible !important;
+    } /* biar dropdown ga kepotong */
+    .nav-links {
+        z-index: 200;
+    } /* pastikan di atas elemen lain */
+}
+/* === MOBILE NAV UNBLOCK === */
+@media (max-width: 860px) {
+    /* header & nav di atas ticker/hero */
+    .header {
+        position: sticky !important;
+        top: 12px !important;
+        z-index: 1200 !important;
+    }
+    .nav {
+        overflow: visible !important;
+        z-index: 1100 !important;
+    }
+
+    /* dropdown benar-benar di atas semuanya */
+    .nav-links {
+        z-index: 1300 !important;
+        left: 1rem;
+        right: 1rem;
+        top: 62px;
+    }
+}
+/* === FIX: Ticker mobile kecil + matikan sticky header & ticker === */
+
+/* Non-sticky untuk semua ukuran */
+.ticker,
+.header {
+    position: static !important;
+    top: auto !important;
+    z-index: auto !important;
+}
+
+/* Ticker di HP: teks lebih kecil & padding rapat */
+@media (max-width: 520px) {
+    .ticker {
+        font-size: 0.85rem; /* kecilin teks */
+        line-height: 1.2;
+        padding: 0.35rem 0; /* rapetin tinggi bar */
+    }
+    /* Boleh pelanin geraknya biar enak dibaca di HP */
+    .ticker__track {
+        animation: scroll-left 26s linear infinite !important;
+    }
+}
+
+/* Pastikan override aturan "MOBILE NAV UNBLOCK" yang bikin header sticky */
+@media (max-width: 860px) {
+    .header {
+        position: static !important;
+        top: auto !important;
+    }
+}
+/* =========================
+   MOBILE IMAGE SIZING FIX
+   ========================= */
+
+/* Pastikan gambar hero tidak terlalu tinggi (pakai aspect-ratio) */
+.hero-media img {
+    aspect-ratio: 16 / 9;
+    height: auto;
+}
+
+/* Tablet & ke bawah: hilangkan efek 3D biar rapi */
+@media (max-width: 860px) {
+    .hero-media img {
+        transform: none;
+    }
+}
+
+/* HP ≤ 640px: tinggi dibatasi */
+@media (max-width: 640px) {
+    .hero {
+        padding: 1.25rem 0 1.75rem;
+    }
+    .hero-media {
+        max-width: 480px;
+        margin-inline: auto;
+    }
+    .hero-media img {
+        aspect-ratio: 16 / 10;
+        max-height: 240px; /* batasi tinggi hero */
+        border-radius: 14px;
+    }
+}
+
+/* HP kecil ≤ 480px */
+@media (max-width: 480px) {
+    .hero-media img {
+        aspect-ratio: 16 / 11;
+        max-height: 200px;
+    }
+}
+
+/* HP sangat kecil ≤ 380px */
+@media (max-width: 380px) {
+    .hero-media img {
+        aspect-ratio: 4 / 3;
+        max-height: 180px;
+    }
+}
+
+/* Menu card image: kecilkan sedikit lagi di layar mini */
+@media (max-width: 400px) {
+    .card.menu img {
+        height: 120px;
+    } /* sebelumnya 140–200px */
+}
+/* =========================================================
+   OVERRIDES — GRID 2 KOLOM + ICON KUNING + HERO MOBILE RAPI
+   Tempel di PALING BAWAH style.css
+   ========================================================= */
+
+/* 1) HERO di HP: lebih kecil & proporsional */
+@media (max-width: 680px) {
+    .hero {
+        padding: 2rem 0 1.25rem;
+    }
+    .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+        text-align: center;
+    }
+    .hero-copy {
+        order: 2;
+    }
+    .hero-media {
+        order: 1;
+    }
+    .hero-media img {
+        width: min(82%, 320px);
+        height: auto;
+        margin: 0 auto;
+        transform: none; /* hilangkan tilt di HP */
+        border-radius: 14px;
+    }
+    .hero-copy h1 {
+        font-size: 1.8rem;
+    }
+}
+
+/* 2) VARIAN/MENU: paksa 2 kolom di HP + kompakkan kartu */
+@media (max-width: 680px) {
+    .menu-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.9rem;
+    }
+    .card.menu img {
+        height: 120px;
+    }
+    .card.menu .name {
+        font-size: 0.98rem;
+        margin: 0.6rem;
+    }
+    .card.menu .desc {
+        font-size: 0.85rem;
+        padding: 0 0.75rem 0.35rem;
+    }
+    .card.menu .price {
+        padding: 0.75rem 0.9rem;
+    }
+    .price strong {
+        font-size: 1rem;
+    }
+    .price .qty button {
+        width: 28px;
+        height: 28px;
+    }
+    .price .qty input {
+        width: 34px;
+    }
+}
+/* Layar sangat kecil: fallback jadi 1 kolom biar tidak terlalu sempit */
+@media (max-width: 360px) {
+    .menu-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* 3) METODE PEMBAYARAN: 2 kolom di HP + ikon kuning */
+.pay-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+@media (max-width: 1024px) {
+    .pay-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 520px) {
+    .pay-grid {
+        grid-template-columns: repeat(2, 1fr);
+    } /* tetap 2 kolom di HP */
+}
+@media (max-width: 360px) {
+    .pay-grid {
+        grid-template-columns: 1fr;
+    } /* layar super kecil */
+}
+
+/* Kartu payment lebih rapi */
+.card.pay {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: 0.25rem;
+    padding: 1.1rem;
+}
+.card.pay i {
+    font-size: 1.35rem;
+    color: #facc15; /* kuning */
+    background: #fff7ed; /* kuning lembut */
+    border-radius: 12px;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 0.35rem;
+}
+.card.pay h3 {
+    margin: 0.15rem 0 0.25rem;
+}
+.card.pay p {
+    margin: 0;
+    color: var(--text-muted);
+}
+
+/* 4) Perapihan kecil tambahan */
+.section-head .accent {
+    color: #ffd166;
+} /* tetap kuning brand */

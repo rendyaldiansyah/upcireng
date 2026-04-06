@@ -1,0 +1,544 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Mail\OrderConfirmationCustomer;
+use App\Mail\OrderNotificationAdmin;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\Setting;
+use App\Models\Testimonial;
+use App\Models\User;
+use App\Services\OrderWorkflowService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+
+class OrderController extends Controller
+{
+    public function index()
+    {
+        $products = Product::query()
+            ->where('status', 'active')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $testimonials = Testimonial::query()
+            ->where('is_approved', true)
+            ->latest()
+            ->limit(6)
+            ->get();
+
+        $storeOpen = Setting::isStoreOpen();
+        $hours = Setting::getOperatingHours();
+        $storeProfile = Setting::storeProfile();
+        $user = $this->currentUser();
+
+        return view('order.index', compact(
+            'products',
+            'testimonials',
+            'storeOpen',
+            'hours',
+            'storeProfile',
+            'user'
+        ));
+    }
+
+    public function create()
+    {
+        $user = $this->requireCustomer();
+
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        $storeOpen = Setting::isStoreOpen();
+        $hours = Setting::getOperatingHours();
+
+        $products = Product::query()
+            ->where('status', 'active')
+            ->where('stock_status', 'available')
+            ->where('is_open', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        return view('order.create', compact('user', 'products', 'storeOpen', 'hours'));
+    }
+
+    public function store(Request $request, OrderWorkflowService $workflow)
+    {
+        $user = $this->requireCustomer();
+
+        if (!$user) {
+            return $this->errorResponse($request, 'Silakan login terlebih dahulu.', 401, route('login'));
+        }
+
+        if (!Setting::isStoreOpen()) {
+            $hours = Setting::getOperatingHours();
+
+            return $this->errorResponse(
+                $request,
+                'Toko sedang tutup. Jam operasional: ' . ($hours['start'] ?? '-') . ' - ' . ($hours['end'] ?? '-'),
+                403,
+                route('home')
+            );
+        }
+
+        $items = $this->extractItems($request);
+        $request->merge(['items' => $items]);
+
+        $rules = [
+            'customer_name'    => 'required|string|min:3|max:100',
+            'customer_phone'   => 'required|string|min:10|max:20',
+            'customer_email'   => 'required|email|max:100',
+            'delivery_address' => 'required|string|min:10|max:500',
+            'payment_method'   => 'required|in:cod,bank_transfer,ewallet,qris',
+            'notes'            => 'nullable|string|max:1000',
+            'items'            => 'required|array|min:1',
+            'items.*.product_id' => 'required|integer|exists:products,id',
+            'items.*.quantity'   => 'required|numeric|min:1',
+            'items.*.variant'    => 'nullable|string|max:100',
+        ];
+
+        // Payment proof required for all methods except COD (max 2MB = 2048KB)
+        if ($request->payment_method !== 'cod') {
+            $rules['payment_proof'] = 'required|image|mimes:jpeg,jpg,png|max:2048';
+        } else {
+            $rules['payment_proof'] = 'nullable|image|mimes:jpeg,jpg,png|max:2048';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return $this->validationErrorResponse($request, $validator->errors()->toArray());
+        }
+
+        try {
+            [$normalizedItems, $totalPrice, $totalQuantity, $summaryTitle, $primaryProductId, $primaryUnitPrice] = $this->normalizeOrderItems($items);
+
+            $paymentProofPath = $request->hasFile('payment_proof')
+                ? $request->file('payment_proof')->store('payment-proofs', 'public')
+                : null;
+
+            $order = Order::create([
+                'user_id'          => $user->id,
+                'product_id'       => $primaryProductId,
+                'reference'        => $this->generateReference(),
+                'product_name'     => $summaryTitle,
+                'quantity'         => $totalQuantity,
+                'price_per_unit'   => $primaryUnitPrice,
+                'total_price'      => $totalPrice,
+                'items'            => $normalizedItems,
+                'payment_method'   => $request->payment_method,
+                'payment_proof_path' => $paymentProofPath,
+                'status'           => Order::STATUS_PENDING,
+                'sync_status'      => Order::SYNC_PENDING,
+                'customer_name'    => $request->customer_name,
+                'customer_phone'   => $request->customer_phone,
+                'customer_email'   => $request->customer_email,
+                'delivery_address' => $request->delivery_address,
+                'notes'            => $request->notes,
+                'order_time'       => now('Asia/Jakarta'),
+            ]);
+
+            $workflow->handleCreated($order->fresh());
+
+            // ── Kirim email notifikasi ──────────────────────────────────────
+            $this->sendOrderEmails($order);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success'      => true,
+                    'message'      => 'Pesanan berhasil dibuat.',
+                    'order_id'     => $order->id,
+                    'reference'    => $order->reference,
+                    'redirect_url' => route('order.show', $order),
+                ]);
+            }
+
+            return redirect()
+                ->route('order.show', $order)
+                ->with('success', 'Pesanan berhasil dibuat.');
+        } catch (\Throwable $exception) {
+            Log::error('Order creation failed', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            return $this->errorResponse($request, 'Gagal membuat pesanan.', 500, route('home'));
+        }
+    }
+
+    /**
+     * Kirim email konfirmasi ke customer dan notifikasi ke admin.
+     * Dibungkus try/catch agar kegagalan email tidak menghentikan proses pesanan.
+     */
+    protected function sendOrderEmails(Order $order): void
+    {
+        // Email ke customer
+        try {
+            Mail::to($order->customer_email)
+                ->send(new OrderConfirmationCustomer($order));
+        } catch (\Throwable $e) {
+            Log::error('Gagal kirim email konfirmasi ke customer', [
+                'order_id' => $order->id,
+                'email'    => $order->customer_email,
+                'error'    => $e->getMessage(),
+            ]);
+        }
+
+        // Email ke admin
+        try {
+            $adminEmail = config('mail.admin_email', env('ADMIN_EMAIL'));
+
+            if ($adminEmail) {
+                Mail::to($adminEmail)
+                    ->send(new OrderNotificationAdmin($order));
+            }
+        } catch (\Throwable $e) {
+            Log::error('Gagal kirim email notifikasi ke admin', [
+                'order_id' => $order->id,
+                'error'    => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function myOrders()
+    {
+        $user = $this->requireCustomer();
+
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        $orders = Order::query()
+            ->where('user_id', $user->id)
+            ->whereNull('deleted_by_customer_at')
+            ->latest()
+            ->paginate(10);
+
+        return view('order.my_orders', [
+            'orders'       => $orders,
+            'storeProfile' => Setting::storeProfile(),
+        ]);
+    }
+
+    public function show(Order $order)
+    {
+        $user = $this->requireCustomer();
+
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        if ($order->user_id !== $user->id || $order->deleted_by_customer_at) {
+            abort(403, 'Unauthorized');
+        }
+
+        $storeProfile = Setting::storeProfile();
+        $storePhone   = preg_replace('/\D+/', '', $storeProfile['phone'] ?? '');
+
+        $itemsSummary = collect($order->items ?? [])
+            ->map(function ($item) {
+                $productName = $item['product_name'] ?? 'Produk';
+                $quantity    = $item['quantity'] ?? 0;
+                $subtotal    = $item['subtotal'] ?? 0;
+
+                return '* ' . $productName . ' x' . $quantity . ' (Rp ' . number_format($subtotal, 0, ',', '.') . ')';
+            })
+            ->implode("\n");
+
+        $paymentProof = $order->payment_proof_path
+            ? "\n*Bukti pembayaran:* " . asset('storage/' . $order->payment_proof_path)
+            : '';
+
+        $notesText = $order->notes ? "\n\n*Catatan:* " . $order->notes : '';
+
+        $whatsappMessage =
+            "Halo UP Cireng!\n\n" .
+            "*Pesanan Baru #{$order->reference}*\n\n" .
+            ($itemsSummary ?: '-') . "\n\n" .
+            '*Total:* Rp ' . number_format($order->total_price, 0, ',', '.') . "\n" .
+            '*Pembayaran:* ' . ucwords(str_replace('_', ' ', $order->payment_method)) .
+            $paymentProof . "\n\n" .
+            "*Pelanggan:*\n" .
+            $order->customer_name . "\n" .
+            $order->customer_phone . "\n" .
+            $order->customer_email . "\n\n" .
+            "*Alamat:*\n" .
+            $order->delivery_address .
+            $notesText . "\n\n" .
+            'Terima kasih!';
+
+        $whatsappUrl = $storePhone
+            ? "https://wa.me/{$storePhone}?text=" . urlencode($whatsappMessage)
+            : null;
+
+        $adminNum    = '6285189014426';
+        $adminWaUrl  = "https://wa.me/{$adminNum}?text=" . urlencode($whatsappMessage);
+
+        return view('order.show', [
+            'order'           => $order,
+            'storeProfile'    => $storeProfile,
+            'whatsappMessage' => $whatsappMessage,
+            'whatsappUrl'     => $whatsappUrl,
+            'adminWaUrl'      => $adminWaUrl,
+            'paymentProofUrl' => $order->payment_proof_path ? asset('storage/' . $order->payment_proof_path) : null,
+        ]);
+    }
+
+    public function cancel(Request $request, Order $order, OrderWorkflowService $workflow)
+    {
+        $user = $this->requireCustomer();
+
+        if (!$user || $order->user_id !== $user->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        if (!$order->canBeCancelled()) {
+            return back()->with('error', 'Pesanan ini tidak dapat dibatalkan.');
+        }
+
+        $request->validate([
+            'cancel_reason' => 'nullable|string|max:500',
+        ]);
+
+        $previousStatus = $order->status;
+
+        $order->update([
+            'status'       => Order::STATUS_CANCELLED,
+            'cancel_reason' => $request->cancel_reason,
+            'completed_at' => null,
+        ]);
+
+        $workflow->handleStatusChange($order->fresh(), $previousStatus);
+
+        return back()->with('success', 'Pesanan berhasil dibatalkan.');
+    }
+
+    public function destroy(Order $order)
+    {
+        $user = $this->requireCustomer();
+
+        if (!$user || $order->user_id !== $user->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        if (!$order->canBeDeletedByCustomer()) {
+            return back()->with('error', 'Pesanan ini belum dapat dihapus dari riwayat.');
+        }
+
+        $order->update([
+            'deleted_by_customer_at' => now('Asia/Jakarta'),
+        ]);
+
+        return redirect()->route('orders.my')->with('success', 'Pesanan dihapus dari riwayat Anda.');
+    }
+
+    /**
+     * Retry syncing a failed order to Google Sheets.
+     */
+    public function retrySyncOrder(Order $order, OrderWorkflowService $workflow)
+    {
+        $user = $this->requireCustomer();
+
+        if (!$user || $order->user_id !== $user->id) {
+            return back()->with('error', 'Anda tidak memiliki akses ke pesanan ini.');
+        }
+
+        if ($order->sync_status !== Order::SYNC_FAILED) {
+            return back()->with('error', 'Pesanan ini tidak perlu disinkronisasi.');
+        }
+
+        try {
+            $order->update([
+                'sync_status' => Order::SYNC_PENDING,
+                'sync_error'  => null,
+            ]);
+
+            $workflow->handleStatusChange($order, $order->status);
+
+            return back()->with('success', 'Pesanan sedang disinkronisasi ulang.');
+        } catch (\Throwable $exception) {
+            Log::error('Order sync retry failed', [
+                'order_id' => $order->id,
+                'message'  => $exception->getMessage(),
+            ]);
+
+            return back()->with('error', 'Gagal menyinkronisasi ulang. Silakan coba beberapa saat lagi.');
+        }
+    }
+
+    protected function extractItems(Request $request): array
+    {
+        if ($request->filled('items')) {
+            $items = $request->input('items');
+
+            if (is_string($items)) {
+                $decoded = json_decode($items, true);
+
+                return is_array($decoded) ? $decoded : [];
+            }
+
+            return is_array($items) ? $items : [];
+        }
+
+        if ($request->filled('product_id')) {
+            return [[
+                'product_id' => $request->input('product_id'),
+                'quantity'   => $request->input('quantity', 1),
+                'variant'    => $request->input('variant'),
+            ]];
+        }
+
+        return [];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array{0: array<int, array<string, mixed>>, 1: float, 2: float, 3: string, 4: int|null, 5: float}
+     */
+    protected function normalizeOrderItems(array $items): array
+    {
+        $normalizedItems  = [];
+        $totalPrice       = 0;
+        $totalQuantity    = 0;
+        $primaryProductId = null;
+        $primaryUnitPrice = 0;
+
+        foreach ($items as $index => $item) {
+            $product = Product::findOrFail($item['product_id']);
+
+            if (!$product->isAvailable()) {
+                throw new \RuntimeException("Produk {$product->name} sedang tidak tersedia.");
+            }
+
+            $quantity  = (float) ($item['quantity'] ?? 0);
+            $unitPrice = (float) $product->price;
+            $subtotal  = $quantity * $unitPrice;
+
+            if ($index === 0) {
+                $primaryProductId = $product->id;
+                $primaryUnitPrice = $unitPrice;
+            }
+
+            $totalPrice    += $subtotal;
+            $totalQuantity += $quantity;
+
+            $normalizedItems[] = [
+                'product_id'   => $product->id,
+                'product_name' => $product->name,
+                'variant'      => filled($item['variant'] ?? null) ? (string) $item['variant'] : null,
+                'quantity'     => $quantity,
+                'unit_price'   => $unitPrice,
+                'subtotal'     => $subtotal,
+            ];
+        }
+
+        $summaryTitle = count($normalizedItems) === 1
+            ? $normalizedItems[0]['product_name']
+            : $normalizedItems[0]['product_name'] . ' + ' . (count($normalizedItems) - 1) . ' item lain';
+
+        return [
+            $normalizedItems,
+            $totalPrice,
+            $totalQuantity,
+            $summaryTitle,
+            $primaryProductId,
+            $primaryUnitPrice,
+        ];
+    }
+
+    protected function generateReference(): string
+    {
+        return 'UPC-' . now('Asia/Jakarta')->format('YmdHis') . '-' . Str::upper(Str::random(4));
+    }
+
+    protected function currentUser(): ?User
+    {
+        $userId = Session::get('user_id');
+
+        return $userId ? User::find($userId) : null;
+    }
+
+    protected function requireCustomer(): ?User
+    {
+        return $this->currentUser();
+    }
+
+    /**
+     * @param  array<string, mixed>  $errors
+     */
+    protected function validationErrorResponse(Request $request, array $errors)
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Validasi gagal.',
+                'errors'  => $errors,
+            ], 422);
+        }
+
+        return back()->withErrors($errors)->withInput();
+    }
+
+    protected function errorResponse(Request $request, string $message, int $status, string $redirect)
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+            ], $status);
+        }
+
+        return redirect($redirect)->with('error', $message);
+    }
+
+    /**
+     * Get latest order data for realtime notifications.
+     * API endpoint for polling new orders without page refresh.
+     */
+    public function getLatestOrders()
+    {
+        $user    = $this->currentUser();
+        $isAdmin = Session::get('admin_id');
+
+        if ($isAdmin) {
+            $totalOrders = Order::count();
+            $latestOrder = Order::latest('id')->first();
+
+            return response()->json([
+                'total_orders'        => $totalOrders,
+                'latest_order_id'     => $latestOrder?->id,
+                'latest_order_status' => $latestOrder?->status,
+                'user_type'           => 'admin',
+            ]);
+        }
+
+        if ($user) {
+            $totalOrders = Order::where('user_id', $user->id)
+                ->whereNull('deleted_by_customer_at')
+                ->count();
+
+            $latestOrder = Order::where('user_id', $user->id)
+                ->whereNull('deleted_by_customer_at')
+                ->latest('id')
+                ->first();
+
+            return response()->json([
+                'total_orders'        => $totalOrders,
+                'latest_order_id'     => $latestOrder?->id,
+                'latest_order_status' => $latestOrder?->status,
+                'user_type'           => 'customer',
+            ]);
+        }
+
+        return response()->json([
+            'total_orders'    => 0,
+            'latest_order_id' => null,
+            'user_type'       => 'guest',
+        ]);
+    }
+}

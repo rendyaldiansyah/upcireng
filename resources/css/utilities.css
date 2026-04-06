@@ -1,0 +1,333 @@
+@import "tailwindcss";
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans:
+        "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
+}
+
+/* ============================================================
+   GLOBAL UI UTILITIES - UP CIRENG
+   ============================================================ */
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    @apply text-slate-900 antialiased;
+    font-family: var(--font-sans);
+}
+
+/* ============================================================
+   KEYFRAMES
+   ============================================================ */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse-subtle {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+@keyframes loading {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+
+@layer utilities {
+    .animate-fade-in {
+        animation: fadeIn 500ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        opacity: 0;
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 500ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        opacity: 0;
+    }
+
+    .animate-fade-in-down {
+        animation: fadeInDown 500ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        opacity: 0;
+    }
+
+    .animate-slide-in-left {
+        animation: slideInLeft 500ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        opacity: 0;
+    }
+
+    .animate-slide-in-right {
+        animation: slideInRight 500ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        opacity: 0;
+    }
+
+    .animate-scale-in {
+        animation: scaleIn 500ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        opacity: 0;
+    }
+
+    .animate-pulse-subtle {
+        animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    .animate-delay-100 {
+        animation-delay: 100ms;
+    }
+
+    .animate-delay-200 {
+        animation-delay: 200ms;
+    }
+
+    .animate-delay-300 {
+        animation-delay: 300ms;
+    }
+
+    .animate-delay-400 {
+        animation-delay: 400ms;
+    }
+
+    .animate-delay-500 {
+        animation-delay: 500ms;
+    }
+
+    .animate-skeleton {
+        background: linear-gradient(
+            90deg,
+            #f0f0f0 25%,
+            #e0e0e0 50%,
+            #f0f0f0 75%
+        );
+        background-size: 1000px 100%;
+        animation: loading 2s infinite;
+    }
+
+    .shadow-panel {
+        @apply transition-shadow duration-300;
+    }
+
+    .card-hover {
+        @apply transition-all duration-300 ease-out;
+    }
+
+    .card-hover:hover {
+        @apply shadow-2xl -translate-y-2;
+    }
+
+    .app-backdrop-blur-sm {
+        backdrop-filter: blur(4px);
+        transition: backdrop-filter 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-100;
+    }
+
+    .btn-primary {
+        @apply bg-gradient-to-r from-brand-600 to-brand-700 text-white hover:shadow-lg hover:scale-[1.02] active:scale-[0.98];
+    }
+
+    .btn-secondary {
+        @apply border border-slate-200 bg-white text-slate-700 hover:border-brand-400 hover:text-brand-600 hover:shadow-md;
+    }
+
+    .btn-sm {
+        @apply px-3 py-1.5 text-xs;
+    }
+
+    .btn-lg {
+        @apply px-6 py-3 text-base;
+    }
+
+    .cta-primary {
+        @apply w-full rounded-lg bg-gradient-to-r from-ink-950 to-brand-600 px-6 py-3 text-base font-semibold text-white transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98];
+    }
+
+    .card {
+        @apply rounded-2xl border border-slate-200 bg-white p-6 shadow-lg;
+    }
+
+    .card-compact {
+        @apply rounded-xl border border-slate-100 bg-white p-4 shadow-md;
+    }
+
+    .form-input {
+        @apply w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium transition-all focus:border-brand-400 focus:bg-white focus:ring-2 focus:ring-brand-100;
+    }
+
+    .form-label {
+        @apply mb-2.5 block text-sm font-semibold text-slate-700;
+    }
+
+    #toastContainer {
+        @apply max-w-sm;
+    }
+
+    .toast-enter,
+    .toast-exit {
+        @apply max-w-sm;
+    }
+}
+
+/* ============================================================
+   GLOBAL INTERACTIONS
+   ============================================================ */
+
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:not(:disabled) {
+    @apply cursor-pointer;
+}
+
+button:disabled {
+    @apply cursor-not-allowed opacity-50;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+[type="email"]:focus,
+[type="password"]:focus,
+[type="search"]:focus {
+    @apply ring-2 ring-brand-200 transition-all duration-300;
+}
+
+::selection {
+    @apply bg-brand-200 text-ink-950;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-slate-100;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-brand-400;
+    transition: background 300ms;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-brand-500;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 768px) {
+    .card-hover:hover {
+        @apply -translate-y-1 shadow-lg;
+    }
+
+    button,
+    a[role="button"],
+    [role="button"] {
+        @apply min-h-12 min-w-12;
+    }
+
+    body {
+        font-size: 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
