@@ -150,6 +150,8 @@
                 <div class="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
                     @forelse($orders as $order)
                         <div class="px-6 py-5 hover:bg-slate-50 transition-colors">
+
+                            {{-- Header: Reference & Status --}}
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <div class="min-w-0">
                                     <p class="font-black text-brand-600 text-sm">{{ $order->reference ?? 'N/A' }}</p>
@@ -160,7 +162,7 @@
                                 </span>
                             </div>
 
-                            {{-- Item summary --}}
+                            {{-- Item Summary --}}
                             @if(is_array($order->items_summary ?? null) && count($order->items_summary) > 0)
                                 <div class="mb-3 space-y-1">
                                     @foreach($order->items_summary as $item)
@@ -176,6 +178,18 @@
                                 </div>
                             @endif
 
+                            {{-- ✅ FIX: Alamat Pengiriman --}}
+                            @if($order->delivery_address)
+                                <div class="flex items-start gap-1.5 mb-3 text-xs text-slate-500">
+                                    <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <span>{{ $order->delivery_address }}</span>
+                                </div>
+                            @endif
+
+                            {{-- Total & Lihat Detail --}}
                             <div class="flex items-center justify-between">
                                 <div>
                                     <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total</p>
@@ -201,6 +215,7 @@
                     @endforelse
                 </div>
             </div>
+
         </div>
     </main>
 </div>
