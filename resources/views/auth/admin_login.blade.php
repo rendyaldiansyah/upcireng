@@ -1,168 +1,191 @@
+{{-- resources/views/auth/admin_login.blade.php --}}
 @extends('layout.app')
 
-@section('title', 'Admin Login - UP Cireng')
-@section('body_class', 'bg-gradient-to-br from-slate-950 via-slate-900 to-ink-950 min-h-screen')
+@section('title', 'Admin — Warung Cireng')
 @section('hide_nav', '1')
 @section('hide_footer', '1')
+@section('body_class', 'antialiased')
 
 @section('content')
-<div class="relative flex min-h-screen flex-col items-center justify-center px-4 py-12 sm:px-6 sm:py-16"
-     data-animate="fade-in-up">
+<div class="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10"
+     style="background: linear-gradient(135deg, #080d08 0%, #0f1a10 40%, #0a1200 100%)">
 
-    {{-- Background blobs --}}
-    <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div class="absolute right-0 top-0 h-64 w-64 rounded-full bg-brand-500/10 blur-3xl sm:h-96 sm:w-96"></div>
-        <div class="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-brand-600/10 blur-3xl sm:h-96 sm:w-96"></div>
+    {{-- ── Animated background layers ── --}}
+    <div class="pointer-events-none absolute inset-0">
+        {{-- Glow orbs --}}
+        <div class="absolute -left-48 top-0 h-[500px] w-[500px] rounded-full blur-[120px]"
+             style="background: radial-gradient(circle, rgba(34,197,94,0.10) 0%, transparent 70%); animation: drift1 8s ease-in-out infinite alternate;"></div>
+        <div class="absolute -right-48 bottom-0 h-[400px] w-[400px] rounded-full blur-[100px]"
+             style="background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%); animation: drift2 10s ease-in-out infinite alternate;"></div>
+        <div class="absolute left-1/2 top-1/3 h-48 w-48 -translate-x-1/2 rounded-full blur-[80px]"
+             style="background: radial-gradient(circle, rgba(34,197,94,0.06) 0%, transparent 70%);"></div>
+
+        {{-- Grid overlay --}}
+        <div class="absolute inset-0 opacity-[0.035]"
+             style="background-image: linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px); background-size: 56px 56px;"></div>
+
+        {{-- Decorative geometric frames --}}
+        <div class="absolute top-10 right-10 h-28 w-28 rounded-2xl border border-white/5 rotate-[15deg]"></div>
+        <div class="absolute bottom-16 left-10 h-20 w-20 rounded-xl border border-green-500/8 -rotate-[8deg]"></div>
+        <div class="absolute top-1/2 right-1/4 h-10 w-10 rounded-lg border border-orange-500/10 rotate-[30deg]"></div>
     </div>
 
-    <div class="relative z-10 w-full max-w-sm sm:max-w-md">
+    <div class="relative z-10 w-full max-w-[400px]">
 
-        {{-- Logo Header --}}
-        <div class="mb-8 text-center animate-fade-in-up sm:mb-12" data-delay="0">
-            <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-2xl transition-all duration-500 hover:shadow-brand-500/50 sm:mb-6 sm:h-20 sm:w-20 sm:rounded-3xl">
+        {{-- ── Logo & Title ── --}}
+        <div class="mb-8 text-center" style="animation: slideDown 0.6s cubic-bezier(0.22,1,0.36,1) both;">
+            <div class="mx-auto mb-5 inline-flex h-20 w-20 items-center justify-center rounded-2xl border border-green-500/15 shadow-2xl"
+                 style="background: linear-gradient(145deg, rgba(34,197,94,0.12), rgba(249,115,22,0.06)); backdrop-filter: blur(12px);">
                 <img src="{{ asset('assets/assets/logo.png') }}"
-                     alt="UP Cireng"
-                     class="h-10 w-10 rounded-xl sm:h-12 sm:w-12 sm:rounded-2xl">
+                     alt="Warung Cireng"
+                     class="h-14 w-14 rounded-xl object-cover">
             </div>
-            <h1 class="mb-2 bg-gradient-to-r from-white via-white/90 to-slate-200 bg-clip-text text-3xl font-black text-transparent sm:mb-3 sm:text-4xl lg:text-5xl">
-                Admin Panel
+            <h1 class="display-font text-2xl font-extrabold text-white sm:text-[1.75rem]">
+                Panel Admin
             </h1>
-            <p class="text-sm leading-relaxed text-slate-300 sm:text-base lg:text-lg">
-                Kelola toko Anda dengan dashboard modern
-            </p>
+            <p class="mt-1.5 text-sm text-slate-500">Warung Cireng • Sistem Manajemen</p>
         </div>
 
-        {{-- Form Card --}}
-        <div class="animate-scale-in rounded-2xl border border-white/20 bg-white/10 p-6 shadow-2xl backdrop-blur-xl transition-all duration-500 hover:border-white/30 sm:rounded-3xl sm:p-8 lg:p-10"
-             data-delay="100">
+        {{-- ── Card ── --}}
+        <div class="rounded-2xl border border-white/8 p-7 shadow-2xl sm:rounded-3xl sm:p-9"
+             style="background: rgba(255,255,255,0.04); backdrop-filter: blur(24px); animation: slideUp 0.6s 0.1s cubic-bezier(0.22,1,0.36,1) both;">
 
             {{-- Errors --}}
-            @if($errors->any())
-                <div class="mb-6 animate-fade-in-down rounded-xl border-2 border-rose-400/40 bg-rose-500/15 p-4 sm:mb-8 sm:rounded-2xl sm:p-5"
-                     data-delay="200">
-                    <div class="flex items-start gap-3">
-                        <svg class="mt-0.5 h-5 w-5 shrink-0 text-rose-400 sm:h-6 sm:w-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                        </svg>
-                        <div>
-                            @foreach($errors->all() as $error)
-                                <p class="text-sm font-semibold text-white">{{ $error }}</p>
-                            @endforeach
-                        </div>
+            @if($errors->any() || session('error'))
+                <div class="mb-5 flex items-start gap-3 rounded-xl border border-rose-500/25 bg-rose-500/10 p-3.5">
+                    <svg class="mt-0.5 h-4 w-4 shrink-0 text-rose-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <div class="text-sm font-semibold text-rose-300 space-y-0.5">
+                        @foreach($errors->all() as $err)<p>{{ $err }}</p>@endforeach
+                        @if(session('error'))<p>{{ session('error') }}</p>@endif
                     </div>
                 </div>
             @endif
 
-            <form action="{{ route('admin.auth.login') }}"
-                  method="POST"
-                  class="space-y-5 sm:space-y-6"
-                  data-animate="fade-in-up"
-                  data-delay="200">
+            <form action="{{ route('admin.auth.login') }}" method="POST" class="space-y-5" id="adminForm">
                 @csrf
 
-                {{-- Email --}}
-                <div class="group">
-                    <label for="email"
-                           class="mb-2 block text-xs font-bold uppercase tracking-wider text-white/80 transition-colors group-focus-within:text-white sm:mb-3 sm:text-sm">
-                        Email Address
+                {{-- Email / Username --}}
+                <div>
+                    <label for="admin_email" class="mb-2 block text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">
+                        Email atau Username
                     </label>
                     <div class="relative">
-                        <svg class="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors duration-300 group-focus-within:text-brand-400 sm:left-5 sm:h-5 sm:w-5"
-                             fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                        </svg>
-                        <input
-                            id="email"
-                            type="email"
-                            name="email"
-                            value="{{ old('email') }}"
-                            required
-                            autocomplete="email"
-                            class="h-12 w-full rounded-xl border border-white/20 bg-white/5 pl-11 pr-4 text-sm font-semibold text-white placeholder-slate-500 outline-none transition-all duration-300 focus:border-brand-400 focus:bg-white/10 focus:ring-4 focus:ring-brand-500/30 sm:h-14 sm:rounded-2xl sm:pl-14 sm:pr-5 sm:text-base lg:h-16 lg:text-lg"
-                            placeholder="admin@upcireng.test"
-                        >
+                        <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2">
+                            <svg class="h-4 w-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                            </svg>
+                        </span>
+                        <input id="admin_email" type="text" name="email"
+                               value="{{ old('email') }}"
+                               autocomplete="username"
+                               placeholder="admin@warungcireng.id"
+                               class="w-full rounded-xl border border-white/10 py-3 pl-10 pr-4 text-sm font-semibold text-white placeholder-slate-600 outline-none transition focus:border-green-500/50 focus:ring-2 focus:ring-green-500/15"
+                               style="background: rgba(255,255,255,0.06);"
+                               required>
                     </div>
                 </div>
 
                 {{-- Password --}}
-                <div class="group">
-                    <label for="password"
-                           class="mb-2 block text-xs font-bold uppercase tracking-wider text-white/80 transition-colors group-focus-within:text-white sm:mb-3 sm:text-sm">
+                <div>
+                    <label for="admin_password" class="mb-2 block text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">
                         Password
                     </label>
                     <div class="relative">
-                        <svg class="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors duration-300 group-focus-within:text-brand-400 sm:left-5 sm:h-5 sm:w-5"
-                             fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                        <input
-                            id="password"
-                            type="password"
-                            name="password"
-                            required
-                            autocomplete="current-password"
-                            class="h-12 w-full rounded-xl border border-white/20 bg-white/5 pl-11 pr-4 text-sm font-semibold text-white placeholder-slate-500 outline-none transition-all duration-300 focus:border-brand-400 focus:bg-white/10 focus:ring-4 focus:ring-brand-500/30 sm:h-14 sm:rounded-2xl sm:pl-14 sm:pr-5 sm:text-base lg:h-16 lg:text-lg"
-                            placeholder="Masukkan password"
-                        >
+                        <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2">
+                            <svg class="h-4 w-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                        </span>
+                        <input id="admin_password" type="password" name="password"
+                               autocomplete="current-password"
+                               placeholder="••••••••"
+                               class="w-full rounded-xl border border-white/10 py-3 pl-10 pr-12 text-sm font-semibold text-white placeholder-slate-600 outline-none transition focus:border-green-500/50 focus:ring-2 focus:ring-green-500/15"
+                               style="background: rgba(255,255,255,0.06);"
+                               required>
+                        {{-- Toggle password --}}
+                        <button type="button" id="togglePw"
+                                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-300 transition">
+                            <svg id="eyeShow" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            <svg id="eyeHide" class="h-4 w-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
                 {{-- Submit --}}
-                <button
-                    type="submit"
-                    class="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 via-brand-600 to-brand-700 text-base font-black text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-brand-500/50 active:scale-[0.98] sm:mt-8 sm:h-14 sm:rounded-2xl sm:text-lg lg:h-16 lg:text-xl"
-                >
-                    <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-                    </svg>
-                    Masuk ke Admin Panel
+                <button type="submit" id="loginBtn"
+                        class="group mt-1 w-full rounded-xl py-3.5 text-sm font-bold text-white shadow-lg transition hover:scale-[1.01] active:scale-[0.99]"
+                        style="background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 8px 24px -8px rgba(22,163,74,0.4);">
+                    <span id="btnLabel" class="flex items-center justify-center gap-2">
+                        <svg class="h-4 w-4 transition group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        Masuk ke Panel Admin
+                    </span>
                 </button>
             </form>
-
-            {{-- Divider --}}
-            <div class="my-6 flex items-center gap-3 sm:my-8">
-                <div class="h-px flex-1 bg-white/10"></div>
-                <span class="text-[10px] font-bold uppercase tracking-wider text-white/40 sm:text-xs">Info Demo</span>
-                <div class="h-px flex-1 bg-white/10"></div>
-            </div>
-
-            {{-- Demo Credentials --}}
-            <div class="rounded-xl border border-brand-500/30 bg-brand-500/10 p-4 backdrop-blur-sm sm:rounded-2xl sm:p-5">
-                <p class="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-brand-300 sm:mb-4 sm:text-xs">
-                    <svg class="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a4 4 0 00-4-4H4a4 4 0 00-4 4v1h16z" />
-                    </svg>
-                    Kredensial Demo
-                </p>
-                <div class="space-y-2 sm:space-y-3">
-                    <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2">
-                        <span class="text-xs text-slate-400">Email:</span>
-                        <span class="font-mono text-xs font-bold text-white sm:text-sm">admin@upcireng.test</span>
-                    </div>
-                    <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2">
-                        <span class="text-xs text-slate-400">Password:</span>
-                        <span class="font-mono text-xs font-bold text-white sm:text-sm">admin123</span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Storefront Link --}}
-            <div class="mt-6 border-t border-white/10 pt-5 text-center sm:mt-8 sm:pt-6">
-                <a href="{{ route('home') }}"
-                   class="group inline-flex items-center gap-2 text-sm font-bold text-white/70 transition-all duration-300 hover:text-white sm:text-base">
-                    <svg class="h-4 w-4 rotate-180 transition-transform duration-300 group-hover:-translate-x-1 sm:h-5 sm:w-5"
-                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Kembali ke Toko
-                </a>
-            </div>
         </div>
 
-        {{-- Footer --}}
-        <p class="mt-6 px-4 text-center text-[10px] text-white/40 sm:mt-8 sm:text-xs">
-            UP Cireng Admin © {{ date('Y') }} • Sistem Manajemen Toko Modern
-        </p>
+        {{-- Back link --}}
+        <div class="mt-6 text-center" style="animation: slideUp 0.6s 0.2s cubic-bezier(0.22,1,0.36,1) both; opacity:0;">
+            <a href="{{ route('home') }}"
+               class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-slate-300">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Kembali ke Warung
+            </a>
+        </div>
     </div>
 </div>
+
+<style>
+    @keyframes slideDown {
+        from { opacity:0; transform: translateY(-20px); }
+        to   { opacity:1; transform: translateY(0); }
+    }
+    @keyframes slideUp {
+        from { opacity:0; transform: translateY(16px); }
+        to   { opacity:1; transform: translateY(0); }
+    }
+    @keyframes drift1 {
+        from { transform: translate(0, 0) scale(1); }
+        to   { transform: translate(40px, 30px) scale(1.1); }
+    }
+    @keyframes drift2 {
+        from { transform: translate(0, 0) scale(1); }
+        to   { transform: translate(-30px, -20px) scale(1.08); }
+    }
+</style>
+
+<script>
+    // Toggle password visibility
+    const togglePw  = document.getElementById('togglePw');
+    const pwInput   = document.getElementById('admin_password');
+    const eyeShow   = document.getElementById('eyeShow');
+    const eyeHide   = document.getElementById('eyeHide');
+
+    if (togglePw && pwInput) {
+        togglePw.addEventListener('click', function () {
+            const isHidden = pwInput.type === 'password';
+            pwInput.type   = isHidden ? 'text' : 'password';
+            eyeShow.classList.toggle('hidden', isHidden);
+            eyeHide.classList.toggle('hidden', !isHidden);
+        });
+    }
+
+    // Loading state on submit
+    document.getElementById('adminForm').addEventListener('submit', function () {
+        const btn   = document.getElementById('loginBtn');
+        const label = document.getElementById('btnLabel');
+        btn.disabled = true;
+        label.innerHTML = '<svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Memverifikasi...';
+    });
+</script>
 @endsection

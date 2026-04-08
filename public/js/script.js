@@ -11,7 +11,9 @@ document.addEventListener("DOMContentLoaded", () => {
         document
             .querySelector('meta[name="csrf-token"]')
             ?.getAttribute("content") || "";
-    const storageKey = "upcireng_cart_v2";
+    // Storage key unik per user untuk hindari cart tercampur
+    const userId = state.user?.id || "guest";
+    const storageKey = `upcireng_cart_v2_user_${userId}`;
 
     const productGrid = document.getElementById("productGrid");
     const openCartButton = document.getElementById("openCartButton");
@@ -95,6 +97,41 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    checkoutItems?.addEventListener("change", (event) => {
+        const variantSelect = event.target.closest(".cart-variant-select");
+        if (!variantSelect) return;
+
+        const itemKey = variantSelect.getAttribute("data-item-key");
+        const newVariant = variantSelect.value;
+
+        const item = cart.find((i) => i.key === itemKey);
+        if (item) {
+            const oldKey = item.key;
+            const productId = item.product_id;
+
+            // Buat key baru dengan variant baru
+            const newKey = itemKey(productId, newVariant);
+
+            // Cari atau buat item dengan variant baru
+            const existing = cart.find((i) => i.key === newKey);
+            if (existing) {
+                existing.quantity += item.quantity;
+            } else {
+                item.key = newKey;
+                item.variant = newVariant;
+            }
+
+            // Hapus item lama jika ada yang digabung
+            if (oldKey !== newKey) {
+                cart = cart.filter((i) => i.key !== oldKey);
+            }
+
+            persistCart();
+            renderCart();
+            toast("Varian diperbarui.");
+        }
+    });
+
     checkoutForm?.addEventListener("submit", async (event) => {
         event.preventDefault();
 
@@ -124,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         try {
-            const response = await fetch(state.routes.orderStore, {
+            const response = await fetch(state.routes.checkout, {
                 method: "POST",
                 headers: {
                     "X-CSRF-TOKEN": csrfToken,
@@ -256,19 +293,44 @@ document.addEventListener("DOMContentLoaded", () => {
         cartCountBadge.textContent = String(count);
         checkoutItems.innerHTML = cart.length
             ? cart
-                  .map(
-                      (item) => `
+                  .map((item) => {
+                      const product = (state.products || []).find(
+                          (p) => Number(p.id) === Number(item.product_id),
+                      );
+                      const variants = (product?.variants || []).filter(
+                          (v) => v && v.trim(),
+                      );
+                      const hasVariants = variants.length > 0;
+
+                      return `
                 <div class="rounded-2xl border border-white/10 px-4 py-3">
                     <div class="flex items-start justify-between gap-4">
-                        <div>
+                        <div class="flex-1">
                             <p class="font-semibold">${escapeHtml(item.name)}</p>
-                            <p class="mt-1 text-xs text-slate-300">${escapeHtml(item.variant || "Regular")} | ${item.quantity} item</p>
+                            <p class="mt-1 text-xs text-slate-300">${item.quantity} item</p>
+                            ${
+                                hasVariants
+                                    ? `
+                            <div class="mt-3 mb-2">
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Matang / Mentah:</label>
+                                <select class="cart-variant-select w-full rounded-lg bg-slate-700/50 border border-slate-600 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-700 transition" data-item-key="${escapeAttribute(item.key)}">
+                                    ${variants
+                                        .map(
+                                            (v) =>
+                                                `<option value="${escapeAttribute(v)}" ${(item.variant || "Regular") === v ? "selected" : ""}>${escapeHtml(v)}</option>`,
+                                        )
+                                        .join("")}
+                                </select>
+                            </div>
+                            `
+                                    : `<p class="mt-2.5 text-xs text-slate-400">Varian: ${escapeHtml(item.variant || "Regular")}</p>`
+                            }
                         </div>
                         <p class="font-bold">${money(item.quantity * item.price)}</p>
                     </div>
                 </div>
-            `,
-                  )
+            `;
+                  })
                   .join("")
             : '<p class="text-sm text-slate-300">Belum ada item.</p>';
         checkoutTotal.textContent = money(total);
@@ -447,10 +509,41 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             const value = btn.getAttribute("data-copy");
 
-            if (!value) return;
+            if (!value) {
+                toast("Tidak ada nilai untuk disalin", true);
+                return;
+            }
 
-            try {
-                await navigator.clipboard.writeText(value);
+            let copied = false;
+
+            // Try modern clipboard API first
+            if (navigator.clipboard && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(value);
+                    copied = true;
+                } catch (err) {
+                    console.log("Clipboard API failed, trying fallback...");
+                }
+            }
+
+            // Fallback: old method menggunakan textarea
+            if (!copied) {
+                try {
+                    const textarea = document.createElement("textarea");
+                    textarea.value = value;
+                    textarea.style.position = "fixed";
+                    textarea.style.opacity = "0";
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(textarea);
+                    copied = true;
+                } catch (err) {
+                    console.error("Copy failed:", err);
+                }
+            }
+
+            if (copied) {
                 const originalText = btn.textContent;
                 btn.textContent = "✅ Tersalin!";
                 btn.classList.remove(
@@ -469,7 +562,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         "hover:bg-brand-200",
                     );
                 }, 2000);
-            } catch (err) {
+                toast("Berhasil disalin!");
+            } else {
                 toast("Gagal menyalin ke clipboard", true);
             }
         });

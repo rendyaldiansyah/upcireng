@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderCreated;
 use App\Mail\OrderConfirmationCustomer;
 use App\Mail\OrderNotificationAdmin;
 use App\Models\Order;
@@ -33,10 +34,18 @@ class OrderController extends Controller
             ->limit(6)
             ->get();
 
-        $storeOpen = Setting::isStoreOpen();
-        $hours = Setting::getOperatingHours();
+        $storeOpen    = Setting::isStoreOpen();
+        $hours        = Setting::getOperatingHours();
         $storeProfile = Setting::storeProfile();
-        $user = $this->currentUser();
+        $heroContent  = Setting::heroContent();
+        $user         = $this->currentUser();
+
+        $deliverySettings = [
+            'store_lat'        => Setting::getSetting('store_lat'),
+            'store_lng'        => Setting::getSetting('store_lng'),
+            'cod_free_km'      => Setting::getSetting('cod_free_km', 5),
+            'cod_extra_per_km' => Setting::getSetting('cod_extra_per_km', 5000),
+        ];
 
         return view('order.index', compact(
             'products',
@@ -44,6 +53,8 @@ class OrderController extends Controller
             'storeOpen',
             'hours',
             'storeProfile',
+            'heroContent',
+            'deliverySettings',
             'user'
         ));
     }
@@ -67,7 +78,28 @@ class OrderController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('order.create', compact('user', 'products', 'storeOpen', 'hours'));
+        // Get QRIS image for checkout display
+        $qrisImage = Setting::getSetting('qris_image', '');
+        $qrisUrl = null;
+        
+        // Debug QRIS loading
+        if ($qrisImage) {
+            // Normalize path separators for Windows compatibility
+            $qrisImage = str_replace('\\', '/', $qrisImage);
+            
+            // Check if file physically exists in storage/app/public/
+            $fullPath = storage_path('app/public/' . $qrisImage);
+            if (file_exists($fullPath)) {
+                $qrisUrl = asset('storage/' . $qrisImage);
+                Log::info('QRIS found', ['qrisImage' => $qrisImage, 'qrisUrl' => $qrisUrl, 'path' => $fullPath]);
+            } else {
+                Log::warning('QRIS file not found', ['qrisImage' => $qrisImage, 'fullPath' => $fullPath]);
+            }
+        } else {
+            Log::info('No QRIS image setting found');
+        }
+        
+        return view('order.create', compact('user', 'products', 'storeOpen', 'hours', 'qrisUrl'));
     }
 
     public function store(Request $request, OrderWorkflowService $workflow)
@@ -94,14 +126,14 @@ class OrderController extends Controller
 
         $rules = [
             'customer_name'    => 'required|string|min:3|max:100',
-            'customer_phone'   => 'required|string|min:10|max:20',
+            'customer_phone'   => 'required|string|min:9|max:15|regex:/^[0-9+\-\s()]{9,}$/',
             'customer_email'   => 'required|email|max:100',
             'delivery_address' => 'required|string|min:10|max:500',
             'payment_method'   => 'required|in:cod,bank_transfer,ewallet,qris',
             'notes'            => 'nullable|string|max:1000',
             'items'            => 'required|array|min:1',
             'items.*.product_id' => 'required|integer|exists:products,id',
-            'items.*.quantity'   => 'required|numeric|min:1',
+            'items.*.quantity'   => 'required|numeric|min:1|max:999',
             'items.*.variant'    => 'nullable|string|max:100',
         ];
 
@@ -112,7 +144,48 @@ class OrderController extends Controller
             $rules['payment_proof'] = 'nullable|image|mimes:jpeg,jpg,png|max:2048';
         }
 
-        $validator = Validator::make($request->all(), $rules);
+        $messages = [
+            'customer_name.required' => 'Nama pelanggan wajib diisi.',
+            'customer_name.min' => 'Nama minimal 3 karakter.',
+            'customer_name.max' => 'Nama maksimal 100 karakter.',
+            
+            'customer_phone.required' => 'Nomor WhatsApp wajib diisi.',
+            'customer_phone.min' => 'Nomor WhatsApp minimal 9 karakter.',
+            'customer_phone.max' => 'Nomor WhatsApp maksimal 15 karakter.',
+            'customer_phone.regex' => 'Format nomor WhatsApp tidak valid. Gunakan format: 081234567, +628123456, atau (62)8123456.',
+            
+            'customer_email.required' => 'Email wajib diisi.',
+            'customer_email.email' => 'Format email tidak valid.',
+            'customer_email.max' => 'Email terlalu panjang.',
+            
+            'delivery_address.required' => 'Alamat pengiriman wajib diisi.',
+            'delivery_address.min' => 'Alamat minimal 10 karakter.',
+            'delivery_address.max' => 'Alamat maksimal 500 karakter.',
+            
+            'payment_method.required' => 'Metode pembayaran wajib dipilih.',
+            'payment_method.in' => 'Metode pembayaran tidak valid.',
+            
+            'notes.max' => 'Catatan maksimal 1000 karakter.',
+            
+            'items.required' => 'Minimal 1 produk harus dipilih.',
+            'items.min' => 'Minimal 1 produk harus dipilih.',
+            
+            'items.*.product_id.required' => 'ID produk wajib ada.',
+            'items.*.product_id.exists' => 'Produk tidak ditemukan.',
+            'items.*.product_id.integer' => 'ID produk harus berupa angka.',
+            
+            'items.*.quantity.required' => 'Jumlah produk wajib diisi.',
+            'items.*.quantity.numeric' => 'Jumlah harus berupa angka.',
+            'items.*.quantity.min' => 'Jumlah minimal 1.',
+            'items.*.quantity.max' => 'Jumlah maksimal 999.',
+            
+            'payment_proof.required' => 'Bukti pembayaran wajib diunggah.',
+            'payment_proof.image' => 'File harus berupa gambar.',
+            'payment_proof.mimes' => 'Format gambar harus JPEG, JPG, atau PNG.',
+            'payment_proof.max' => 'Ukuran gambar maksimal 2MB.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
 
         if ($validator->fails()) {
             return $this->validationErrorResponse($request, $validator->errors()->toArray());
@@ -145,6 +218,9 @@ class OrderController extends Controller
                 'notes'            => $request->notes,
                 'order_time'       => now('Asia/Jakarta'),
             ]);
+
+            // 🔥 Broadcast realtime order notification to admin
+            broadcast(new OrderCreated($order))->toOthers();
 
             $workflow->handleCreated($order->fresh());
 
@@ -310,9 +386,9 @@ class OrderController extends Controller
         $previousStatus = $order->status;
 
         $order->update([
-            'status'       => Order::STATUS_CANCELLED,
+            'status'        => Order::STATUS_CANCELLED,
             'cancel_reason' => $request->cancel_reason,
-            'completed_at' => null,
+            'completed_at'  => null,
         ]);
 
         $workflow->handleStatusChange($order->fresh(), $previousStatus);
@@ -476,8 +552,17 @@ class OrderController extends Controller
     protected function validationErrorResponse(Request $request, array $errors)
     {
         if ($request->expectsJson()) {
+            // Extract the first error message for better UX
+            $firstErrorMessage = 'Validasi gagal.';
+            foreach ($errors as $field => $messages) {
+                if (is_array($messages) && !empty($messages)) {
+                    $firstErrorMessage = $messages[0];
+                    break;
+                }
+            }
+            
             return response()->json([
-                'message' => 'Validasi gagal.',
+                'message' => $firstErrorMessage,
                 'errors'  => $errors,
             ], 422);
         }

@@ -128,8 +128,8 @@
         @if($order->payment_proof_path)
         <p class="section-title">Bukti Pembayaran</p>
         <div class="info-box">
-            <a href="{{ asset('storage/' . $order->payment_proof_path) }}" class="proof-btn" target="_blank">
-                🖼️ Lihat Bukti Pembayaran
+            <a href="{{ route('payment.proof', $order->id) }}" class="proof-btn" target="_blank">
+                🖼️ Lihat Bukti Pembayaran (Preview + Watermark)
             </a>
         </div>
         @endif

@@ -18,9 +18,11 @@
         'storeOpen' => $isOpen,
         'hours'     => $hours,
         'routes'    => [
-            'login'      => route('login'),
-            'orderStore' => route('order.store'),
-            'ordersMy'   => route('orders.my'),
+            'login'                  => route('login'),
+            'checkout'               => route('api.checkout'),
+            'ordersMy'               => route('orders.my'),
+            'checkDistance'          => route('api.check.distance'),
+            'checkDistanceByCoords'  => route('api.check.distance.coords'),
         ],
         'products' => $products->map(fn ($product) => [
             'id'           => $product->id,
@@ -34,6 +36,11 @@
             'is_open'      => $product->is_open,
             'variants'     => $product->availableVariants(),
         ])->values(),
+        'delivery' => [
+            'cod_free_km'       => (float) ($deliverySettings['cod_free_km'] ?? 5),
+            'cod_extra_per_km'  => (float) ($deliverySettings['cod_extra_per_km'] ?? 5000),
+            'store_has_coords'  => !empty($deliverySettings['store_lat']) && !empty($deliverySettings['store_lng']),
+        ],
     ];
 @endphp
 
@@ -51,12 +58,14 @@
                     {{ $isOpen ? 'TOKO BUKA' : 'TOKO TUTUP' }}
                 </div>
 
+                {{-- ★ DINAMIS dari Admin Settings --}}
                 <h1 class="display-font mb-5 text-3xl font-extrabold leading-tight text-ink-950 animate-slideInUp sm:mb-6 sm:text-4xl lg:text-5xl xl:text-6xl" style="animation-delay:100ms">
-                    Pesan cireng favorit dengan mudah
+                    {{ $heroContent['headline'] }}
                 </h1>
 
+                {{-- ★ DINAMIS dari Admin Settings --}}
                 <p class="mb-7 max-w-2xl text-sm leading-relaxed text-slate-600 animate-slideInUp sm:mb-8 sm:text-base sm:leading-relaxed lg:text-lg lg:leading-8" style="animation-delay:200ms">
-                    Sistem order modern dengan fitur checkout yang cepat. Pesanan langsung masuk ke admin kami, dan kamu bisa cek status kapan saja.
+                    {{ $heroContent['description'] }}
                 </p>
 
                 {{-- CTA Buttons --}}
@@ -151,7 +160,8 @@
     <section id="menu" class="mx-auto mt-16 max-w-7xl px-4 sm:px-6 sm:mt-20 lg:px-8">
 
         <div class="mb-8 animate-slideInUp sm:mb-12">
-            <p class="mb-2 text-xs font-bold uppercase tracking-[0.3em] text-brand-500 sm:text-sm">Menu Pilihan</p>
+            {{-- ★ DINAMIS subheadline dari Settings --}}
+            <p class="mb-2 text-xs font-bold uppercase tracking-[0.3em] text-brand-500 sm:text-sm">{{ $heroContent['subheadline'] }}</p>
             <h2 class="display-font mb-3 text-2xl font-extrabold text-ink-950 sm:mb-4 sm:text-3xl lg:text-4xl">
                 Pilih produk favorit mu
             </h2>
@@ -495,8 +505,57 @@
                     <div>
                         <label class="mb-1.5 block text-sm font-bold text-slate-700">Alamat Pengiriman</label>
                         <textarea name="delivery_address" id="deliveryAddress" rows="3"
-                                  class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none transition focus:border-brand-300 focus:bg-white sm:rounded-[1.5rem] sm:rows-4 sm:py-3"
+                                  class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none transition focus:border-brand-300 focus:bg-white sm:rounded-[1.5rem] sm:py-3"
                                   required></textarea>
+
+                        {{-- ★ DISTANCE CHECK WIDGET --}}
+                        <div class="mt-2 space-y-2">
+
+                            {{-- Baris tombol: GPS + Cek Jarak --}}
+                            <div class="flex flex-wrap gap-2">
+
+                                {{-- ★ TOMBOL GPS BARU --}}
+                                <button type="button" id="getLocationBtn"
+                                        class="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50">
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06z"/>
+                                    </svg>
+                                    <span id="getLocationBtnText">📍 Ambil Lokasi Saya</span>
+                                </button>
+
+                                {{-- Tombol Cek Jarak manual (existing) --}}
+                                <button type="button" id="checkDistanceBtn"
+                                        class="inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2 text-xs font-bold text-brand-600 transition hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-50">
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <span id="checkDistanceBtnText">🗺️ Cek Jarak & Ongkir</span>
+                                </button>
+                            </div>
+
+                            {{-- Result box (hidden by default) --}}
+                            <div id="distanceResultBox" class="hidden mt-1 rounded-xl border p-3 text-sm">
+                                <div class="flex items-start gap-2">
+                                    <span id="distanceIcon" class="text-base">📍</span>
+                                    <div class="flex-1">
+                                        <p id="distanceText" class="font-bold text-slate-800"></p>
+                                        <p id="distanceFeeText" class="mt-0.5 text-xs text-slate-600"></p>
+                                        <p id="distanceAddressText" class="mt-0.5 text-xs text-slate-500 italic"></p>
+                                        <p id="distanceCoverageText" class="mt-1 text-xs font-semibold"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- hidden fields --}}
+                            <input type="hidden" name="delivery_fee" id="deliveryFeeInput" value="0">
+                            <input type="hidden" name="delivery_distance_km" id="deliveryDistanceInput" value="">
+                            <input type="hidden" id="customerLatInput" value="">
+                            <input type="hidden" id="customerLngInput" value="">
+                        </div>
                     </div>
 
                     <div>
@@ -504,7 +563,7 @@
                         <select name="payment_method" id="paymentMethod"
                                 class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none transition focus:border-brand-300 focus:bg-white sm:rounded-2xl sm:py-3"
                                 required>
-                            <option value="cod">Cash on Delivery</option>
+                            <option value="cod">Cash on Delivery (COD)</option>
                             <option value="bank_transfer">Transfer Bank</option>
                             <option value="ewallet">E-Wallet</option>
                             <option value="qris">QRIS</option>
@@ -516,6 +575,12 @@
                         <div id="checkout-cod" class="payment-detail-card hidden animate-fade-in rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-4">
                             <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-600">💵 Cash On Delivery</p>
                             <p class="text-sm text-slate-700">Bayar langsung ke kurir saat barang tiba.</p>
+                            <div id="codDeliveryInfo" class="mt-2 hidden rounded-lg border border-emerald-100 bg-white p-2">
+                                <p class="text-xs text-slate-600">
+                                    🛵 Antar area: gratis s/d <strong id="codFreeKmDisplay">5</strong> km dari toko.<br>
+                                    Lebih dari itu dikenakan biaya tambahan <strong id="codExtraRateDisplay">Rp 5.000</strong>/km.
+                                </p>
+                            </div>
                         </div>
 
                         <div id="checkout-bank_transfer" class="payment-detail-card hidden animate-fade-in space-y-2 rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 p-4">
@@ -567,6 +632,12 @@
                 <div class="rounded-2xl bg-ink-950 p-4 text-white sm:rounded-[1.8rem] sm:p-5">
                     <p class="text-xs font-bold uppercase tracking-[0.24em] text-brand-300">Ringkasan Order</p>
                     <div id="checkoutItems" class="mt-4 space-y-3 text-sm text-slate-200"></div>
+
+                    <div id="deliveryFeeRow" class="hidden mt-3 flex items-center justify-between border-t border-white/10 pt-3 text-sm">
+                        <span class="text-slate-300">Ongkos Kirim</span>
+                        <span id="checkoutDeliveryFee" class="font-bold text-emerald-400">Gratis</span>
+                    </div>
+
                     <div class="mt-6 flex items-center justify-between border-t border-white/10 pt-4 text-base font-extrabold">
                         <span>Total Bayar</span>
                         <span id="checkoutTotal">Rp 0</span>
@@ -599,18 +670,249 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Stagger animation for cards with data-delay
+        // Stagger animation
         document.querySelectorAll('[data-delay]').forEach(function (el) {
             const delay = el.getAttribute('data-delay');
             if (delay) el.style.setProperty('animation-delay', delay + 'ms');
         });
 
-        // Delete confirm
         document.querySelectorAll('form[data-delete-confirm]').forEach(function (form) {
             form.addEventListener('submit', function (e) {
                 if (!confirm(this.getAttribute('data-delete-confirm'))) e.preventDefault();
             });
         });
+
+        // =====================================================================
+        // ★ DISTANCE CHECK FEATURE
+        // =====================================================================
+        const state              = JSON.parse(document.getElementById('storefrontState').textContent);
+        const delivery           = state.delivery || {};
+        const codFreeKm          = delivery.cod_free_km || 5;
+        const codExtraPerKm      = delivery.cod_extra_per_km || 5000;
+        const checkDistUrl       = state.routes.checkDistance;
+        const checkDistCoordsUrl = state.routes.checkDistanceByCoords;
+        const storeHasCoords     = delivery.store_has_coords || false;
+
+        // COD info display
+        const codFreeKmDisplay    = document.getElementById('codFreeKmDisplay');
+        const codExtraRateDisplay = document.getElementById('codExtraRateDisplay');
+        if (codFreeKmDisplay)    codFreeKmDisplay.textContent    = codFreeKm;
+        if (codExtraRateDisplay) codExtraRateDisplay.textContent = 'Rp ' + codExtraPerKm.toLocaleString('id-ID');
+
+        const paymentMethodSel = document.getElementById('paymentMethod');
+        function toggleCodInfo() {
+            const codInfo = document.getElementById('codDeliveryInfo');
+            if (!codInfo) return;
+            codInfo.classList.toggle('hidden', paymentMethodSel.value !== 'cod');
+        }
+        if (paymentMethodSel) {
+            paymentMethodSel.addEventListener('change', toggleCodInfo);
+            toggleCodInfo();
+        }
+
+        // DOM refs
+        const checkDistBtn      = document.getElementById('checkDistanceBtn');
+        const getLocationBtn    = document.getElementById('getLocationBtn');
+        const distResultBox     = document.getElementById('distanceResultBox');
+        const distText          = document.getElementById('distanceText');
+        const distFeeText       = document.getElementById('distanceFeeText');
+        const distAddressText   = document.getElementById('distanceAddressText');
+        const distCovText       = document.getElementById('distanceCoverageText');
+        const distIcon          = document.getElementById('distanceIcon');
+        const deliveryFeeInput  = document.getElementById('deliveryFeeInput');
+        const deliveryDistInp   = document.getElementById('deliveryDistanceInput');
+        const customerLatInput  = document.getElementById('customerLatInput');
+        const customerLngInput  = document.getElementById('customerLngInput');
+        const btnText           = document.getElementById('checkDistanceBtnText');
+        const gpsText           = document.getElementById('getLocationBtnText');
+        const deliveryFeeRow    = document.getElementById('deliveryFeeRow');
+        const checkoutFeeEl     = document.getElementById('checkoutDeliveryFee');
+        const csrfToken         = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        // Disable buttons if store has no coords
+        if (!storeHasCoords) {
+            [checkDistBtn, getLocationBtn].forEach(btn => {
+                if (!btn) return;
+                btn.disabled = true;
+                btn.title    = 'Admin belum mengatur koordinat toko';
+                btn.classList.add('opacity-40');
+            });
+        }
+
+        // ── Shared: render result from API response ──────────────────────────
+        function renderDistanceResult(data, addressHint) {
+            const km     = parseFloat(data.distance_km).toFixed(1);
+            const fee    = parseInt(data.delivery_fee, 10);
+            const within = data.within_coverage;
+
+            deliveryFeeInput.value = fee;
+            deliveryDistInp.value  = km;
+
+            distResultBox.className = 'mt-1 rounded-xl border p-3 text-sm ' +
+                (within ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50');
+
+            distIcon.textContent = within ? '✅' : '⚠️';
+            distText.textContent = `Jarak ke toko: ${km} km`;
+            distFeeText.textContent = fee === 0
+                ? `Ongkos kirim: GRATIS (≤ ${codFreeKm} km)`
+                : `Ongkos kirim: Rp ${fee.toLocaleString('id-ID')} (+${(km - codFreeKm).toFixed(1)} km × Rp ${codExtraPerKm.toLocaleString('id-ID')}/km)`;
+
+            // Tampilkan nama alamat hasil reverse geocode (GPS) atau display_name
+            const addr = data.display_name || addressHint || '';
+            if (addr && distAddressText) {
+                distAddressText.textContent = '📌 ' + addr.substring(0, 80) + (addr.length > 80 ? '…' : '');
+            }
+
+            distCovText.textContent = within
+                ? '✓ Dalam jangkauan antar COD'
+                : 'Di luar area gratis — biaya tambahan berlaku';
+            distCovText.className = 'mt-1 text-xs font-semibold ' + (within ? 'text-emerald-600' : 'text-amber-700');
+
+            distResultBox.classList.remove('hidden');
+
+            if (deliveryFeeRow && checkoutFeeEl) {
+                deliveryFeeRow.classList.remove('hidden');
+                checkoutFeeEl.textContent = fee === 0 ? 'Gratis' : 'Rp ' + fee.toLocaleString('id-ID');
+                checkoutFeeEl.className   = fee === 0 ? 'font-bold text-emerald-400' : 'font-bold text-amber-300';
+            }
+        }
+
+        function renderDistanceError(message) {
+            distResultBox.className = 'mt-1 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm';
+            distIcon.textContent    = '❌';
+            distText.textContent    = message || 'Gagal mengecek jarak.';
+            distFeeText.textContent = 'Coba tulis alamat lebih lengkap, contoh: Jl. Merdeka No.1, Purbalingga, Jawa Tengah';
+            if (distAddressText) distAddressText.textContent = '';
+            distCovText.textContent = '';
+            distResultBox.classList.remove('hidden');
+        }
+
+        function resetDistance() {
+            if (distResultBox)    distResultBox.classList.add('hidden');
+            if (deliveryFeeInput) deliveryFeeInput.value = 0;
+            if (deliveryDistInp)  deliveryDistInp.value  = '';
+            if (deliveryFeeRow)   deliveryFeeRow.classList.add('hidden');
+            if (customerLatInput) customerLatInput.value = '';
+            if (customerLngInput) customerLngInput.value = '';
+        }
+
+        // ── 1. Tombol GPS: Ambil Lokasi Saya ─────────────────────────────────
+        if (getLocationBtn && storeHasCoords) {
+            getLocationBtn.addEventListener('click', function () {
+                if (!navigator.geolocation) {
+                    alert('Browser kamu tidak mendukung fitur GPS. Coba masukkan alamat manual.');
+                    return;
+                }
+
+                gpsText.textContent      = '⏳ Mengambil lokasi...';
+                getLocationBtn.disabled  = true;
+                distResultBox.classList.add('hidden');
+
+                navigator.geolocation.getCurrentPosition(
+                    async function (position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+
+                        // Simpan koordinat
+                        if (customerLatInput) customerLatInput.value = lat;
+                        if (customerLngInput) customerLngInput.value = lng;
+
+                        gpsText.textContent = '⏳ Menghitung ongkir...';
+
+                        try {
+                            const resp = await fetch(checkDistCoordsUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'Accept': 'application/json',
+                                },
+                                body: JSON.stringify({ lat, lng }),
+                            });
+
+                            const data = await resp.json();
+
+                            if (!resp.ok || data.error) {
+                                throw new Error(data.message || 'Gagal menghitung jarak.');
+                            }
+
+                            // Auto-isi field alamat dengan hasil reverse geocode
+                            const addressField = document.getElementById('deliveryAddress');
+                            if (addressField && data.display_name && !addressField.value.trim()) {
+                                addressField.value = data.display_name;
+                            }
+
+                            renderDistanceResult(data, data.display_name);
+
+                        } catch (err) {
+                            renderDistanceError(err.message);
+                        } finally {
+                            gpsText.textContent     = '📍 Ambil Lokasi Saya';
+                            getLocationBtn.disabled = false;
+                        }
+                    },
+                    function (error) {
+                        gpsText.textContent     = '📍 Ambil Lokasi Saya';
+                        getLocationBtn.disabled = false;
+
+                        const messages = {
+                            1: 'Akses lokasi ditolak. Izinkan akses lokasi di browser kamu.',
+                            2: 'Lokasi tidak tersedia. Pastikan GPS aktif.',
+                            3: 'Timeout. Coba lagi.',
+                        };
+                        renderDistanceError(messages[error.code] || 'Gagal mendapatkan lokasi.');
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            });
+        }
+
+        // ── 2. Tombol Cek Jarak manual (via alamat teks) ──────────────────────
+        if (checkDistBtn && storeHasCoords) {
+            checkDistBtn.addEventListener('click', async function () {
+                const address = document.getElementById('deliveryAddress').value.trim();
+                if (!address) {
+                    alert('Isi dulu alamat pengiriman.');
+                    return;
+                }
+
+                btnText.textContent      = '⏳ Mengecek jarak...';
+                checkDistBtn.disabled    = true;
+                distResultBox.classList.add('hidden');
+
+                try {
+                    const resp = await fetch(checkDistUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({ address }),
+                    });
+
+                    const data = await resp.json();
+
+                    if (!resp.ok || data.error) {
+                        throw new Error(data.message || 'Alamat tidak ditemukan. Coba lebih spesifik.');
+                    }
+
+                    renderDistanceResult(data, address);
+
+                } catch (err) {
+                    renderDistanceError(err.message);
+                } finally {
+                    btnText.textContent   = '🗺️ Cek Jarak & Ongkir';
+                    checkDistBtn.disabled = false;
+                }
+            });
+        }
+
+        // Reset saat alamat diubah manual
+        const deliveryAddressTA = document.getElementById('deliveryAddress');
+        if (deliveryAddressTA) {
+            deliveryAddressTA.addEventListener('input', resetDistance);
+        }
     });
     </script>
 
@@ -621,33 +923,24 @@
         }
         .animate-fade-in { animation: fade-in 0.3s ease-out; }
 
-        /* ── Product Card: smooth hover tanpa konflik dengan select/input ── */
         .product-card {
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
                         box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             will-change: transform;
         }
-
-        /* Hover naik hanya saat TIDAK ada elemen di dalamnya yang aktif */
         .product-card:hover:not(:has(.product-field:focus)) {
             transform: translateY(-4px);
             box-shadow: 0 20px 40px -12px rgba(15, 23, 42, 0.18);
         }
-
-        /* Saat focus pada select/input → card diam, tidak goyang */
         .product-card:has(.product-field:focus) {
             transform: translateY(0) !important;
         }
-
-        /* Image zoom hanya saat card hover DAN tidak ada focus di dalam */
         .product-card:hover:not(:has(.product-field:focus)) .product-card__img {
             transform: scale(1.07);
         }
         .product-card__img {
             transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        /* Overlay fade */
         .product-card__overlay {
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -655,38 +948,28 @@
         .product-card:hover:not(:has(.product-field:focus)) .product-card__overlay {
             opacity: 1;
         }
-
-        /* ── Select & Input: smooth transition ── */
         .product-field {
-            transition: border-color 0.2s ease,
-                        background-color 0.2s ease,
-                        box-shadow 0.2s ease;
+            transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
             position: relative;
             z-index: 1;
         }
-
         .product-field:hover:not(:disabled) {
-            border-color: #fdba74; /* brand-300 */
+            border-color: #fdba74;
             background-color: #fff;
         }
-
         .product-field:focus {
-            border-color: #fb923c; /* brand-400 */
+            border-color: #fb923c;
             background-color: #fff;
             box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
         }
-
-        /* ── Tombol tambah ke keranjang ── */
         .product-btn {
             transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
                         box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         .product-btn:not(:disabled):hover {
             transform: scale(1.03);
             box-shadow: 0 8px 20px -6px rgba(249, 115, 22, 0.4);
         }
-
         .product-btn:not(:disabled):active {
             transform: scale(0.97);
         }

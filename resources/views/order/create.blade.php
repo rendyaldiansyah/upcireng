@@ -202,11 +202,11 @@
                                 <h4 class="font-semibold text-slate-900">QRIS</h4>
                                 <p class="text-sm text-slate-600 mt-2">Scan QR code berikut:</p>
                                 <div class="mt-4 flex justify-center">
-                                    @if(file_exists(public_path('images/qris.png')))
-                                        <img src="{{ asset('images/qris.png') }}" alt="QRIS Code" class="w-40 h-40 rounded-xl border-2 border-orange-300 shadow-lg">
+                                    @if($qrisUrl)
+                                        <img src="{{ $qrisUrl }}" alt="QRIS Code" class="w-40 h-40 rounded-xl border-2 border-orange-300 shadow-lg object-cover">
                                     @else
                                         <div class="w-40 h-40 rounded-xl bg-slate-200 border-2 border-slate-300 flex items-center justify-center text-sm text-slate-600">
-                                            <span class="text-center">QRIS image tidak ditemukan</span>
+                                            <span class="text-center">QRIS belum dikonfigurasi</span>
                                         </div>
                                     @endif
                                 </div>

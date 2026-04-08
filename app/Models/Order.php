@@ -143,7 +143,8 @@ class Order extends Model
     }
 
     /**
-     * Payment proof URL when present.
+     * Payment proof URL (Clean, Professional Preview)
+     * Returns: /payment/{orderId} instead of /storage/...
      */
     public function getPaymentProofUrlAttribute(): ?string
     {
@@ -151,7 +152,28 @@ class Order extends Model
             return null;
         }
 
+        // Return clean URL to preview page (not direct file access)
+        return route('payment.proof', $this->id);
+    }
+
+    /**
+     * Direct file storage URL (Legacy - use getPaymentProofUrlAttribute instead)
+     */
+    public function getStoragePaymentProofUrlAttribute(): ?string
+    {
+        if (!$this->payment_proof_path) {
+            return null;
+        }
+
         return asset('storage/' . $this->payment_proof_path);
+    }
+
+    /**
+     * Check if payment proof exists
+     */
+    public function hasPaymentProof(): bool
+    {
+        return $this->payment_proof_path && Storage::disk('public')->exists($this->payment_proof_path);
     }
 
     /**
