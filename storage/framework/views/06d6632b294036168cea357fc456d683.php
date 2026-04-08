@@ -50,26 +50,22 @@
 
             
             <div>
-                
                 <div class="mb-5 inline-flex items-center gap-2.5 rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-xs font-bold uppercase tracking-[0.23em] text-brand-600 animate-slideInUp sm:mb-6 sm:gap-3 sm:py-2.5" style="animation-delay:0ms">
                     <span class="h-2 w-2 rounded-full sm:h-2.5 sm:w-2.5 <?php echo e($isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'); ?>"></span>
                     <?php echo e($isOpen ? 'TOKO BUKA' : 'TOKO TUTUP'); ?>
 
                 </div>
 
-                
                 <h1 class="display-font mb-5 text-3xl font-extrabold leading-tight text-ink-950 animate-slideInUp sm:mb-6 sm:text-4xl lg:text-5xl xl:text-6xl" style="animation-delay:100ms">
                     <?php echo e($heroContent['headline']); ?>
 
                 </h1>
 
-                
                 <p class="mb-7 max-w-2xl text-sm leading-relaxed text-slate-600 animate-slideInUp sm:mb-8 sm:text-base sm:leading-relaxed lg:text-lg lg:leading-8" style="animation-delay:200ms">
                     <?php echo e($heroContent['description']); ?>
 
                 </p>
 
-                
                 <div class="mb-8 flex flex-wrap gap-3 animate-slideInUp sm:mb-10" style="animation-delay:300ms">
                     <a href="#menu"
                        class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-ink-950 to-brand-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition duration-300 hover:scale-105 hover:shadow-xl sm:px-7 sm:py-3.5">
@@ -88,8 +84,7 @@
                     </a>
                 </div>
 
-                
-                <div class="grid grid-cols-3 gap-2 animate-fadeIn sm:gap-3 sm:gap-4" style="animation-delay:400ms">
+                <div class="grid grid-cols-3 gap-2 animate-fadeIn sm:gap-4" style="animation-delay:400ms">
                     <div class="rounded-xl border border-slate-100 bg-slate-50 p-3 sm:rounded-2xl sm:p-4 lg:p-5">
                         <p class="mb-1 text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:text-xs">Operasional</p>
                         <p class="text-base font-extrabold text-ink-950 sm:text-xl lg:text-2xl"><?php echo e($hours['start']); ?>-<?php echo e($hours['end']); ?></p>
@@ -134,7 +129,7 @@
                                 <?php echo e($storeProfile['name']); ?>
 
                             </h2>
-                            <p class="mt-2 text-xs leading-relaxed text-white/80 sm:text-sm sm:leading-relaxed sm:mt-3">
+                            <p class="mt-2 text-xs leading-relaxed text-white/80 sm:mt-3 sm:text-sm sm:leading-relaxed">
                                 Menyediakan cireng segar dengan sistem order yang modern dan mudah. Semua pesanan langsung terkelola dengan baik.
                             </p>
                         </div>
@@ -164,7 +159,6 @@
     <section id="menu" class="mx-auto mt-16 max-w-7xl px-4 sm:px-6 sm:mt-20 lg:px-8">
 
         <div class="mb-8 animate-slideInUp sm:mb-12">
-            
             <p class="mb-2 text-xs font-bold uppercase tracking-[0.3em] text-brand-500 sm:text-sm"><?php echo e($heroContent['subheadline']); ?></p>
             <h2 class="display-font mb-3 text-2xl font-extrabold text-ink-950 sm:mb-4 sm:text-3xl lg:text-4xl">
                 Pilih produk favorit mu
@@ -195,94 +189,121 @@
         </div>
 
         
-        <div id="productGrid" class="grid gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        
+        
+        <div id="productGrid" class="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
             <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <?php
                     $productVariants = $product->availableVariants();
                     $productEnabled  = $isOpen && $product->isAvailable();
-                    $productStatus   = !$isOpen
-                        ? 'TOKO TUTUP'
+
+                    /* Label status — pendek untuk mobile */
+                    $productStatus = !$isOpen
+                        ? 'Tutup'
                         : ($product->stock_status === 'out_of_stock'
                             ? 'Habis'
                             : ((!$product->is_open || $product->status !== 'active') ? 'Tutup' : 'Siap'));
+
+                    $allVariants = !empty($productVariants) ? $productVariants : ['Regular'];
                 ?>
+
                 <article
                     data-product-card
                     data-delay="<?php echo e($loop->index * 50); ?>"
-                    class="product-card group overflow-hidden rounded-2xl border border-white/80 bg-white shadow-md animate-fadeIn"
+                    class="product-card group flex flex-col overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm animate-fadeIn sm:rounded-2xl sm:shadow-md"
                 >
                     
-                    <div class="relative h-44 overflow-hidden bg-slate-100 sm:h-52 lg:h-56">
+                    <div class="relative h-28 shrink-0 overflow-hidden bg-slate-100 sm:h-48 lg:h-52">
                         <img src="<?php echo e($product->image_url); ?>"
                              alt="<?php echo e($product->name); ?>"
                              class="product-card__img h-full w-full object-cover">
                         <div class="product-card__overlay absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
 
-                        <div class="absolute inset-x-3 top-3 flex items-center justify-between gap-2">
-                            <span class="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-700 shadow-sm">
+                        
+                        <div class="absolute left-1.5 top-1.5 sm:left-2.5 sm:top-2.5">
+                            <span class="inline-block rounded-full bg-white/95 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-slate-700 shadow-sm sm:px-2.5 sm:py-1 sm:text-[10px]">
                                 <?php echo e($productStatus); ?>
 
                             </span>
-                            <span class="rounded-full bg-brand-500 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                        </div>
+                        <div class="absolute right-1.5 top-1.5 sm:right-2.5 sm:top-2.5">
+                            <span class="inline-block rounded-full bg-brand-500 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-white shadow-sm sm:px-2.5 sm:py-1 sm:text-[10px]">
                                 Live
                             </span>
                         </div>
                     </div>
 
                     
-                    <div class="p-4 sm:p-5">
-                        <h3 class="display-font line-clamp-1 text-base font-bold text-ink-950 sm:text-lg lg:text-xl">
+                    <div class="flex flex-1 flex-col p-2 sm:p-4">
+
+                        
+                        <h3 class="display-font line-clamp-1 text-[13px] font-bold leading-snug text-ink-950 sm:line-clamp-2 sm:text-base lg:text-lg">
                             <?php echo e($product->name); ?>
 
                         </h3>
-                        <p class="mt-1 line-clamp-2 text-xs text-slate-600 sm:text-sm">
+
+                        
+                        <p class="mt-0.5 hidden line-clamp-1 text-[11px] text-slate-500 sm:mt-1 sm:block sm:text-sm">
                             <?php echo e($product->description ?: 'Cireng berkualitas UP Cireng'); ?>
 
                         </p>
 
                         
-                        <div class="mt-3 flex items-baseline justify-between sm:mt-4">
-                            <div>
-                                <p class="mb-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">Harga</p>
-                                <p class="text-xl font-extrabold text-ink-950 sm:text-2xl lg:text-3xl">
-                                    <?php echo e($product->formatPrice()); ?>
+                        <p class="mt-1.5 text-[15px] font-extrabold text-ink-950 sm:mt-2 sm:text-xl lg:text-2xl">
+                            <?php echo e($product->formatPrice()); ?>
 
-                                </p>
-                            </div>
-                            <div class="text-right">
-                                <p class="mb-1 text-[10px] font-bold uppercase tracking-wide text-brand-500">Stock</p>
-                                <div class="inline-flex items-center justify-center rounded-lg bg-brand-50 px-2 py-1">
-                                    <p class="text-xs font-bold text-brand-600"><?php echo e($productEnabled ? '✓ Ready' : 'N/A'); ?></p>
-                                </div>
-                            </div>
-                        </div>
+                        </p>
 
                         
-                        <div class="mt-3 space-y-2 sm:mt-4 sm:space-y-2.5">
-                            <div>
-                                <label class="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:mb-1.5">Pilih Varian</label>
-                                <select
-                                    data-product-variant
-                                    class="product-field w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 outline-none sm:text-sm"
-                                    <?php echo e($productEnabled ? '' : 'disabled'); ?>
+                        <div class="mt-2 space-y-1.5 sm:mt-3 sm:space-y-2">
 
-                                >
-                                    <?php $__empty_1 = true; $__currentLoopData = $productVariants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $variant): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                        <option value="<?php echo e($variant); ?>"><?php echo e($variant); ?></option>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                        <option value="Regular">Regular</option>
-                                    <?php endif; ?>
-                                </select>
+                            
+                            <div>
+                                <label class="mb-1 block text-[8px] font-bold uppercase tracking-wide text-slate-400 sm:text-[10px]">Varian</label>
+
+                                <?php if(count($allVariants) >= 2): ?>
+                                    <div class="grid grid-cols-2 gap-1" data-variant-group="<?php echo e($product->id); ?>">
+                                        <?php $__currentLoopData = $allVariants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $vIdx => $variant): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <button
+                                                type="button"
+                                                data-variant-btn="<?php echo e($variant); ?>"
+                                                class="variant-btn truncate rounded-md border-2 py-1 text-[9px] font-semibold leading-tight transition-all sm:rounded-lg sm:py-1.5 sm:text-[11px]
+                                                       <?php echo e($vIdx === 0
+                                                           ? 'border-brand-500 bg-brand-50 text-brand-700'
+                                                           : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-brand-300 hover:text-brand-600'); ?>"
+                                                <?php echo e($productEnabled ? '' : 'disabled'); ?>
+
+                                            ><?php echo e($variant); ?></button>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </div>
+                                    <select data-product-variant class="hidden" <?php echo e($productEnabled ? '' : 'disabled'); ?>>
+                                        <?php $__currentLoopData = $allVariants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $variant): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e($variant); ?>"><?php echo e($variant); ?></option>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </select>
+                                <?php else: ?>
+                                    <select
+                                        data-product-variant
+                                        class="product-field w-full rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-semibold text-slate-700 outline-none sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-sm"
+                                        <?php echo e($productEnabled ? '' : 'disabled'); ?>
+
+                                    >
+                                        <?php $__currentLoopData = $allVariants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $variant): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e($variant); ?>"><?php echo e($variant); ?></option>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </select>
+                                <?php endif; ?>
                             </div>
 
+                            
                             <div>
-                                <label class="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:mb-1.5">Jumlah</label>
+                                <label class="mb-1 block text-[8px] font-bold uppercase tracking-wide text-slate-400 sm:text-[10px]">Jumlah</label>
                                 <input
                                     data-product-qty
                                     type="number"
                                     min="1"
                                     value="1"
-                                    class="product-field w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 outline-none sm:text-sm"
+                                    class="product-field w-full rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-semibold text-slate-700 outline-none sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-sm"
                                     <?php echo e($productEnabled ? '' : 'disabled'); ?>
 
                                 >
@@ -293,17 +314,94 @@
                         <button
                             type="button"
                             data-add-product="<?php echo e($product->id); ?>"
-                            class="product-btn mt-4 w-full rounded-lg px-4 py-2.5 text-xs font-bold sm:text-sm
-                                   <?php echo e($productEnabled ? 'bg-gradient-to-r from-ink-950 to-brand-600 text-white' : 'cursor-not-allowed bg-slate-200 text-slate-500'); ?>"
+                            class="product-btn mt-2 w-full rounded-lg py-1.5 text-[10px] font-bold sm:mt-3 sm:py-2.5 sm:text-sm
+                                   <?php echo e($productEnabled
+                                       ? 'bg-gradient-to-r from-ink-950 to-brand-600 text-white'
+                                       : 'cursor-not-allowed bg-slate-200 text-slate-400'); ?>"
                             <?php echo e($productEnabled ? '' : 'disabled'); ?>
 
                         >
-                            <?php echo e($productEnabled ? '➕ Tambah ke Keranjang' : $productStatus); ?>
+                            <?php if($productEnabled): ?>
+                                <span class="hidden sm:inline">➕ Tambahkan ke keranjang</span>
+                                <span class="sm:hidden">➕ Tambah</span>
+                            <?php else: ?>
+                                <?php echo e($productStatus); ?>
 
+                            <?php endif; ?>
                         </button>
                     </div>
                 </article>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        </div>
+    </section>
+
+    
+    <section class="mx-auto mt-20 max-w-7xl px-4 sm:px-6 sm:mt-24 lg:px-8">
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-ink-950 via-slate-900 to-brand-900 px-6 py-12 sm:rounded-3xl sm:px-10 lg:px-16 lg:py-16">
+
+            <div class="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-brand-500/10"></div>
+            <div class="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-brand-600/10"></div>
+            <div class="pointer-events-none absolute right-1/3 bottom-0 h-32 w-32 rounded-full bg-white/5"></div>
+
+            <div class="relative mb-10 text-center sm:mb-12">
+                <p class="mb-2 text-xs font-bold uppercase tracking-[0.3em] text-brand-400">Cara Bayar</p>
+                <h2 class="text-2xl font-extrabold text-white sm:text-3xl lg:text-4xl">
+                    Metode <span class="text-brand-400">Pembayaran</span>
+                </h2>
+                <p class="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-white/60 sm:text-base">
+                    Pilih yang nyaman buat kamu. Kalau transfer/e-wallet, upload bukti agar cepat diverifikasi.
+                </p>
+            </div>
+
+            <div class="relative grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+                
+                <div class="group rounded-xl border border-white/10 bg-white/10 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-brand-400/40 hover:bg-white/15 sm:rounded-2xl sm:p-5 lg:p-6">
+                    <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500/20 transition-colors group-hover:bg-brand-500/30 sm:mb-4 sm:h-12 sm:w-12">
+                        <svg class="h-5 w-5 text-brand-400 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="mb-1 text-sm font-extrabold text-white sm:mb-1.5 sm:text-base">COD</h3>
+                    <p class="text-xs leading-relaxed text-white/60 sm:text-sm">Bayar di tempat saat pesanan tiba</p>
+                </div>
+
+                
+                <div class="group rounded-xl border border-white/10 bg-white/10 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-brand-400/40 hover:bg-white/15 sm:rounded-2xl sm:p-5 lg:p-6">
+                    <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500/20 transition-colors group-hover:bg-brand-500/30 sm:mb-4 sm:h-12 sm:w-12">
+                        <svg class="h-5 w-5 text-brand-400 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
+                        </svg>
+                    </div>
+                    <h3 class="mb-1 text-sm font-extrabold text-white sm:mb-1.5 sm:text-base">Transfer Bank</h3>
+                    <p class="text-xs leading-relaxed text-white/60 sm:text-sm">Sea Bank / Bank Jago / BCA / BRI</p>
+                </div>
+
+                
+                <div class="group rounded-xl border border-white/10 bg-white/10 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-brand-400/40 hover:bg-white/15 sm:rounded-2xl sm:p-5 lg:p-6">
+                    <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500/20 transition-colors group-hover:bg-brand-500/30 sm:mb-4 sm:h-12 sm:w-12">
+                        <svg class="h-5 w-5 text-brand-400 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="mb-1 text-sm font-extrabold text-white sm:mb-1.5 sm:text-base">E-Wallet</h3>
+                    <p class="text-xs leading-relaxed text-white/60 sm:text-sm">DANA / OVO / GoPay / ShopeePay</p>
+                </div>
+
+                
+                <div class="group rounded-xl border border-white/10 bg-white/10 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-brand-400/40 hover:bg-white/15 sm:rounded-2xl sm:p-5 lg:p-6">
+                    <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500/20 transition-colors group-hover:bg-brand-500/30 sm:mb-4 sm:h-12 sm:w-12">
+                        <svg class="h-5 w-5 text-brand-400 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                        </svg>
+                    </div>
+                    <h3 class="mb-1 text-sm font-extrabold text-white sm:mb-1.5 sm:text-base">QRIS</h3>
+                    <p class="text-xs leading-relaxed text-white/60 sm:text-sm">Scan QR untuk pembayaran instan</p>
+                </div>
+            </div>
+
+            <div class="relative mt-8 text-center">
+                <p class="text-xs font-medium text-white/40">Pembayaran Instan!</p>
+            </div>
         </div>
     </section>
 
@@ -331,11 +429,12 @@
             </div>
         </div>
 
-        <div class="grid gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
             <?php $__empty_1 = true; $__currentLoopData = $testimonials; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $testimonial): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <article
                     data-delay="<?php echo e($loop->index * 50); ?>"
-                    class="rounded-2xl border border-white/80 bg-white p-5 shadow-md transition duration-300 hover:shadow-lg animate-fadeIn sm:p-6"
+                    class="animate-fadeIn rounded-2xl border border-white/80 bg-white p-5 shadow-md transition duration-300 hover:shadow-lg sm:p-6"
                 >
                     <div class="mb-4 flex items-center justify-between">
                         <div class="flex gap-1">
@@ -347,7 +446,6 @@
                         </div>
                         <span class="text-xs font-bold text-slate-400"><?php echo e($testimonial->created_at->translatedFormat('d M Y')); ?></span>
                     </div>
-
                     <h3 class="display-font mb-2 text-base font-bold text-ink-950 sm:text-lg">
                         <?php echo e($testimonial->customer_name); ?>
 
@@ -361,7 +459,7 @@
                     </a>
                 </article>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                <div class="rounded-2xl border-2 border-dashed border-slate-300 bg-gradient-to-br from-slate-50 to-white px-6 py-14 text-center sm:col-span-2 sm:py-16 lg:col-span-3">
+                <div class="col-span-1 rounded-2xl border-2 border-dashed border-slate-300 bg-gradient-to-br from-slate-50 to-white px-6 py-14 text-center sm:col-span-2 sm:py-16 lg:col-span-3">
                     <svg class="mx-auto mb-3 h-10 w-10 text-slate-400 sm:h-12 sm:w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                     </svg>
@@ -376,8 +474,7 @@
     <section id="kontak" class="mx-auto mb-16 mt-20 max-w-7xl px-4 sm:px-6 sm:mb-20 sm:mt-24 lg:px-8">
         <div class="grid gap-5 sm:gap-6 lg:grid-cols-2">
 
-            
-            <div class="rounded-2xl bg-gradient-to-br from-ink-950 to-brand-700 p-7 text-white shadow-xl animate-slideInUp sm:rounded-3xl sm:p-10">
+            <div class="animate-slideInUp rounded-2xl bg-gradient-to-br from-ink-950 to-brand-700 p-7 text-white shadow-xl sm:rounded-3xl sm:p-10">
                 <p class="mb-2 text-xs font-bold uppercase tracking-[0.3em] text-brand-200 sm:mb-3 sm:text-sm">Butuh Bantuan?</p>
                 <h2 class="display-font mb-3 text-2xl font-extrabold sm:mb-4 sm:text-3xl lg:text-4xl">Hubungi Kami</h2>
                 <p class="mb-7 text-sm leading-relaxed text-white/90 sm:mb-8 sm:text-base sm:leading-relaxed">
@@ -401,8 +498,7 @@
                 </div>
             </div>
 
-            
-            <div class="space-y-4 animate-fadeIn sm:space-y-4" style="animation-delay:200ms">
+            <div class="animate-fadeIn space-y-4 sm:space-y-4" style="animation-delay:200ms">
                 <?php
                     $infoCards = [
                         [
@@ -430,7 +526,10 @@
                     <div class="rounded-2xl border border-white/80 bg-white p-5 shadow-md transition hover:shadow-lg sm:p-6">
                         <div class="flex items-start gap-3 sm:gap-4">
                             <div class="shrink-0 rounded-lg bg-brand-50 p-2.5 sm:p-3">
-                                <svg class="h-5 w-5 text-brand-600 sm:h-6 sm:w-6" fill="<?php echo e(str_contains($card['icon'], 'stroke-linecap') ? 'none' : 'currentColor'); ?>" stroke="<?php echo e(str_contains($card['icon'], 'stroke-linecap') ? 'currentColor' : 'none'); ?>" viewBox="0 0 24 24">
+                                <svg class="h-5 w-5 text-brand-600 sm:h-6 sm:w-6"
+                                     fill="<?php echo e(str_contains($card['icon'], 'stroke-linecap') ? 'none' : 'currentColor'); ?>"
+                                     stroke="<?php echo e(str_contains($card['icon'], 'stroke-linecap') ? 'currentColor' : 'none'); ?>"
+                                     viewBox="0 0 24 24">
                                     <?php echo $card['icon']; ?>
 
                                 </svg>
@@ -453,8 +552,15 @@
     </section>
 
     
+    <footer class="mx-auto mt-12 max-w-7xl px-4 pb-8 text-center sm:px-6 lg:px-8">
+        <p class="text-xs font-medium text-slate-400">
+           
+        </p>
+    </footer>
+
+    
     <aside id="cartDrawer"
-           class="fixed right-0 top-0 z-[90] flex h-full w-full translate-x-full flex-col border-l border-white/70 bg-white shadow-panel transition duration-300 max-w-sm sm:max-w-md lg:max-w-lg">
+           class="fixed right-0 top-0 z-[90] flex h-full w-full max-w-sm translate-x-full flex-col border-l border-white/70 bg-white shadow-panel transition duration-300 sm:max-w-md lg:max-w-lg">
         <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6 sm:py-5">
             <div>
                 <p class="text-xs font-bold uppercase tracking-[0.24em] text-brand-500">Cart</p>
@@ -474,7 +580,7 @@
             <button
                 id="checkoutButton"
                 type="button"
-                class="w-full rounded-xl py-3 text-sm font-bold transition sm:rounded-2xl sm:py-3
+                class="w-full rounded-xl py-3 text-sm font-bold transition sm:rounded-2xl
                        <?php echo e($isOpen ? 'bg-ink-950 text-white hover:bg-brand-500' : 'cursor-not-allowed bg-slate-200 text-slate-500'); ?>"
                 <?php echo e($isOpen ? '' : 'disabled'); ?>
 
@@ -496,7 +602,6 @@
             </div>
 
             <div class="grid gap-6 px-5 py-5 sm:px-6 sm:py-6 lg:grid-cols-[1fr_0.84fr] lg:gap-8">
-                
                 <div class="space-y-4">
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
@@ -526,13 +631,8 @@
                                   class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none transition focus:border-brand-300 focus:bg-white sm:rounded-[1.5rem] sm:py-3"
                                   required></textarea>
 
-                        
                         <div class="mt-2 space-y-2">
-
-                            
                             <div class="flex flex-wrap gap-2">
-
-                                
                                 <button type="button" id="getLocationBtn"
                                         class="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50">
                                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -542,7 +642,6 @@
                                     <span id="getLocationBtnText">📍 Ambil Lokasi Saya</span>
                                 </button>
 
-                                
                                 <button type="button" id="checkDistanceBtn"
                                         class="inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2 text-xs font-bold text-brand-600 transition hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-50">
                                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -555,20 +654,18 @@
                                 </button>
                             </div>
 
-                            
-                            <div id="distanceResultBox" class="hidden mt-1 rounded-xl border p-3 text-sm">
+                            <div id="distanceResultBox" class="mt-1 hidden rounded-xl border p-3 text-sm">
                                 <div class="flex items-start gap-2">
                                     <span id="distanceIcon" class="text-base">📍</span>
                                     <div class="flex-1">
                                         <p id="distanceText" class="font-bold text-slate-800"></p>
                                         <p id="distanceFeeText" class="mt-0.5 text-xs text-slate-600"></p>
-                                        <p id="distanceAddressText" class="mt-0.5 text-xs text-slate-500 italic"></p>
+                                        <p id="distanceAddressText" class="mt-0.5 text-xs italic text-slate-500"></p>
                                         <p id="distanceCoverageText" class="mt-1 text-xs font-semibold"></p>
                                     </div>
                                 </div>
                             </div>
 
-                            
                             <input type="hidden" name="delivery_fee" id="deliveryFeeInput" value="0">
                             <input type="hidden" name="delivery_distance_km" id="deliveryDistanceInput" value="">
                             <input type="hidden" id="customerLatInput" value="">
@@ -588,9 +685,8 @@
                         </select>
                     </div>
 
-                    
                     <div id="paymentDetailsCheckout" class="space-y-3">
-                        <div id="checkout-cod" class="payment-detail-card hidden animate-fade-in rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-4">
+                        <div id="checkout-cod" class="payment-detail-card animate-fade-in hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-4">
                             <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-600">💵 Cash On Delivery</p>
                             <p class="text-sm text-slate-700">Bayar langsung ke kurir saat barang tiba.</p>
                             <div id="codDeliveryInfo" class="mt-2 hidden rounded-lg border border-emerald-100 bg-white p-2">
@@ -601,7 +697,7 @@
                             </div>
                         </div>
 
-                        <div id="checkout-bank_transfer" class="payment-detail-card hidden animate-fade-in space-y-2 rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 p-4">
+                        <div id="checkout-bank_transfer" class="payment-detail-card animate-fade-in hidden space-y-2 rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 p-4">
                             <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-blue-600">🏦 Transfer Bank</p>
                             <div class="space-y-2">
                                 <?php $__currentLoopData = [['Bank Jago','105 3012 9xxx'],['SeaBank','901 067 9xxx'],['BCA','789 123 4xxx'],['BRI','456 789 0xxx']]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as [$bank, $no]): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -617,7 +713,7 @@
                             <p class="text-xs text-slate-600">a.n. Rendy Al Diansyah</p>
                         </div>
 
-                        <div id="checkout-ewallet" class="payment-detail-card hidden animate-fade-in rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 p-4">
+                        <div id="checkout-ewallet" class="payment-detail-card animate-fade-in hidden rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 p-4">
                             <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-purple-600">📱 E-Wallet</p>
                             <div class="flex items-center justify-between rounded-lg border border-purple-100 bg-white p-2">
                                 <span class="text-xs font-semibold text-slate-700">DANA • OVO • GoPay • ShopeePay</span>
@@ -627,9 +723,14 @@
                             <p class="mt-2 text-xs text-slate-600">a.n. Rendy Al Diansyah</p>
                         </div>
 
-                        <div id="checkout-qris" class="payment-detail-card hidden animate-fade-in rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50 to-red-50 p-4">
-                            <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-orange-600">📲 QRIS</p>
-                            <p class="text-xs text-slate-600">Scan QR code dengan aplikasi mobile banking atau e-wallet Anda</p>
+                        <div id="checkout-qris" class="payment-detail-card animate-fade-in hidden rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50 to-red-50 p-4">
+                            <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-orange-600">📲 QRIS</p>
+                            <div class="mb-3 overflow-hidden rounded-xl border border-orange-100 bg-white p-2">
+                                <img src="<?php echo e(asset('assets/assets/qris.jpg')); ?>"
+                                     alt="QRIS UP Cireng"
+                                     class="mx-auto h-48 w-auto object-contain sm:h-56">
+                            </div>
+                            <p class="text-xs text-slate-600">*Setelah bayar, upload bukti pembayaran ya.</p>
                         </div>
                     </div>
 
@@ -646,12 +747,11 @@
                     </div>
                 </div>
 
-                
                 <div class="rounded-2xl bg-ink-950 p-4 text-white sm:rounded-[1.8rem] sm:p-5">
                     <p class="text-xs font-bold uppercase tracking-[0.24em] text-brand-300">Ringkasan Order</p>
                     <div id="checkoutItems" class="mt-4 space-y-3 text-sm text-slate-200"></div>
 
-                    <div id="deliveryFeeRow" class="hidden mt-3 flex items-center justify-between border-t border-white/10 pt-3 text-sm">
+                    <div id="deliveryFeeRow" class="mt-3 hidden flex items-center justify-between border-t border-white/10 pt-3 text-sm">
                         <span class="text-slate-300">Ongkos Kirim</span>
                         <span id="checkoutDeliveryFee" class="font-bold text-emerald-400">Gratis</span>
                     </div>
@@ -661,7 +761,7 @@
                         <span id="checkoutTotal">Rp 0</span>
                     </div>
                     <p class="mt-4 text-xs leading-6 text-slate-400">
-                        Order akan disimpan ke database Laravel terlebih dahulu, kemudian mengalir ke email, notifikasi, dan laporan.
+                        Periksa kembali pesanan sebelum dikirim. Konfirmasi dan estimasi akan dikirim setelahnya.
                     </p>
                 </div>
             </div>
@@ -688,7 +788,6 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Stagger animation
         document.querySelectorAll('[data-delay]').forEach(function (el) {
             const delay = el.getAttribute('data-delay');
             if (delay) el.style.setProperty('animation-delay', delay + 'ms');
@@ -700,9 +799,28 @@
             });
         });
 
-        // =====================================================================
-        // ★ DISTANCE CHECK FEATURE
-        // =====================================================================
+        // ── Variant button grid ──
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-variant-btn]');
+            if (!btn) return;
+            const group = btn.closest('[data-variant-group]');
+            if (!group) return;
+
+            group.querySelectorAll('[data-variant-btn]').forEach(function (b) {
+                b.classList.remove('border-brand-500', 'bg-brand-50', 'text-brand-700');
+                b.classList.add('border-slate-200', 'bg-slate-50', 'text-slate-600');
+            });
+            btn.classList.add('border-brand-500', 'bg-brand-50', 'text-brand-700');
+            btn.classList.remove('border-slate-200', 'bg-slate-50', 'text-slate-600');
+
+            const card = btn.closest('[data-product-card]');
+            if (card) {
+                const hiddenSelect = card.querySelector('select[data-product-variant]');
+                if (hiddenSelect) hiddenSelect.value = btn.dataset.variantBtn;
+            }
+        });
+
+        // ── Distance check ──
         const state              = JSON.parse(document.getElementById('storefrontState').textContent);
         const delivery           = state.delivery || {};
         const codFreeKm          = delivery.cod_free_km || 5;
@@ -711,7 +829,6 @@
         const checkDistCoordsUrl = state.routes.checkDistanceByCoords;
         const storeHasCoords     = delivery.store_has_coords || false;
 
-        // COD info display
         const codFreeKmDisplay    = document.getElementById('codFreeKmDisplay');
         const codExtraRateDisplay = document.getElementById('codExtraRateDisplay');
         if (codFreeKmDisplay)    codFreeKmDisplay.textContent    = codFreeKm;
@@ -728,26 +845,24 @@
             toggleCodInfo();
         }
 
-        // DOM refs
-        const checkDistBtn      = document.getElementById('checkDistanceBtn');
-        const getLocationBtn    = document.getElementById('getLocationBtn');
-        const distResultBox     = document.getElementById('distanceResultBox');
-        const distText          = document.getElementById('distanceText');
-        const distFeeText       = document.getElementById('distanceFeeText');
-        const distAddressText   = document.getElementById('distanceAddressText');
-        const distCovText       = document.getElementById('distanceCoverageText');
-        const distIcon          = document.getElementById('distanceIcon');
-        const deliveryFeeInput  = document.getElementById('deliveryFeeInput');
-        const deliveryDistInp   = document.getElementById('deliveryDistanceInput');
-        const customerLatInput  = document.getElementById('customerLatInput');
-        const customerLngInput  = document.getElementById('customerLngInput');
-        const btnText           = document.getElementById('checkDistanceBtnText');
-        const gpsText           = document.getElementById('getLocationBtnText');
-        const deliveryFeeRow    = document.getElementById('deliveryFeeRow');
-        const checkoutFeeEl     = document.getElementById('checkoutDeliveryFee');
-        const csrfToken         = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        const checkDistBtn     = document.getElementById('checkDistanceBtn');
+        const getLocationBtn   = document.getElementById('getLocationBtn');
+        const distResultBox    = document.getElementById('distanceResultBox');
+        const distText         = document.getElementById('distanceText');
+        const distFeeText      = document.getElementById('distanceFeeText');
+        const distAddressText  = document.getElementById('distanceAddressText');
+        const distCovText      = document.getElementById('distanceCoverageText');
+        const distIcon         = document.getElementById('distanceIcon');
+        const deliveryFeeInput = document.getElementById('deliveryFeeInput');
+        const deliveryDistInp  = document.getElementById('deliveryDistanceInput');
+        const customerLatInput = document.getElementById('customerLatInput');
+        const customerLngInput = document.getElementById('customerLngInput');
+        const btnText          = document.getElementById('checkDistanceBtnText');
+        const gpsText          = document.getElementById('getLocationBtnText');
+        const deliveryFeeRow   = document.getElementById('deliveryFeeRow');
+        const checkoutFeeEl    = document.getElementById('checkoutDeliveryFee');
+        const csrfToken        = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-        // Disable buttons if store has no coords
         if (!storeHasCoords) {
             [checkDistBtn, getLocationBtn].forEach(btn => {
                 if (!btn) return;
@@ -757,37 +872,25 @@
             });
         }
 
-        // ── Shared: render result from API response ──────────────────────────
         function renderDistanceResult(data, addressHint) {
             const km     = parseFloat(data.distance_km).toFixed(1);
             const fee    = parseInt(data.delivery_fee, 10);
             const within = data.within_coverage;
-
             deliveryFeeInput.value = fee;
             deliveryDistInp.value  = km;
-
             distResultBox.className = 'mt-1 rounded-xl border p-3 text-sm ' +
                 (within ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50');
-
             distIcon.textContent = within ? '✅' : '⚠️';
             distText.textContent = `Jarak ke toko: ${km} km`;
             distFeeText.textContent = fee === 0
                 ? `Ongkos kirim: GRATIS (≤ ${codFreeKm} km)`
                 : `Ongkos kirim: Rp ${fee.toLocaleString('id-ID')} (+${(km - codFreeKm).toFixed(1)} km × Rp ${codExtraPerKm.toLocaleString('id-ID')}/km)`;
-
-            // Tampilkan nama alamat hasil reverse geocode (GPS) atau display_name
             const addr = data.display_name || addressHint || '';
-            if (addr && distAddressText) {
+            if (addr && distAddressText)
                 distAddressText.textContent = '📌 ' + addr.substring(0, 80) + (addr.length > 80 ? '…' : '');
-            }
-
-            distCovText.textContent = within
-                ? '✓ Dalam jangkauan antar COD'
-                : 'Di luar area gratis — biaya tambahan berlaku';
-            distCovText.className = 'mt-1 text-xs font-semibold ' + (within ? 'text-emerald-600' : 'text-amber-700');
-
+            distCovText.textContent = within ? '✓ Dalam jangkauan antar COD' : 'Di luar area gratis — biaya tambahan berlaku';
+            distCovText.className   = 'mt-1 text-xs font-semibold ' + (within ? 'text-emerald-600' : 'text-amber-700');
             distResultBox.classList.remove('hidden');
-
             if (deliveryFeeRow && checkoutFeeEl) {
                 deliveryFeeRow.classList.remove('hidden');
                 checkoutFeeEl.textContent = fee === 0 ? 'Gratis' : 'Rp ' + fee.toLocaleString('id-ID');
@@ -814,70 +917,38 @@
             if (customerLngInput) customerLngInput.value = '';
         }
 
-        // ── 1. Tombol GPS: Ambil Lokasi Saya ─────────────────────────────────
         if (getLocationBtn && storeHasCoords) {
             getLocationBtn.addEventListener('click', function () {
-                if (!navigator.geolocation) {
-                    alert('Browser kamu tidak mendukung fitur GPS. Coba masukkan alamat manual.');
-                    return;
-                }
-
-                gpsText.textContent      = '⏳ Mengambil lokasi...';
-                getLocationBtn.disabled  = true;
+                if (!navigator.geolocation) { alert('Browser kamu tidak mendukung GPS. Masukkan alamat manual.'); return; }
+                gpsText.textContent     = '⏳ Mengambil lokasi...';
+                getLocationBtn.disabled = true;
                 distResultBox.classList.add('hidden');
-
                 navigator.geolocation.getCurrentPosition(
                     async function (position) {
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
-
-                        // Simpan koordinat
                         if (customerLatInput) customerLatInput.value = lat;
                         if (customerLngInput) customerLngInput.value = lng;
-
                         gpsText.textContent = '⏳ Menghitung ongkir...';
-
                         try {
                             const resp = await fetch(checkDistCoordsUrl, {
                                 method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': csrfToken,
-                                    'Accept': 'application/json',
-                                },
+                                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
                                 body: JSON.stringify({ lat, lng }),
                             });
-
                             const data = await resp.json();
-
-                            if (!resp.ok || data.error) {
-                                throw new Error(data.message || 'Gagal menghitung jarak.');
-                            }
-
-                            // Auto-isi field alamat dengan hasil reverse geocode
+                            if (!resp.ok || data.error) throw new Error(data.message || 'Gagal menghitung jarak.');
                             const addressField = document.getElementById('deliveryAddress');
-                            if (addressField && data.display_name && !addressField.value.trim()) {
+                            if (addressField && data.display_name && !addressField.value.trim())
                                 addressField.value = data.display_name;
-                            }
-
                             renderDistanceResult(data, data.display_name);
-
-                        } catch (err) {
-                            renderDistanceError(err.message);
-                        } finally {
-                            gpsText.textContent     = '📍 Ambil Lokasi Saya';
-                            getLocationBtn.disabled = false;
-                        }
+                        } catch (err) { renderDistanceError(err.message); }
+                        finally { gpsText.textContent = '📍 Ambil Lokasi Saya'; getLocationBtn.disabled = false; }
                     },
                     function (error) {
                         gpsText.textContent     = '📍 Ambil Lokasi Saya';
                         getLocationBtn.disabled = false;
-
-                        const messages = {
-                            1: 'Akses lokasi ditolak. Izinkan akses lokasi di browser kamu.',
-                            2: 'Lokasi tidak tersedia. Pastikan GPS aktif.',
-                            3: 'Timeout. Coba lagi.',
-                        };
+                        const messages = { 1: 'Akses lokasi ditolak.', 2: 'Lokasi tidak tersedia.', 3: 'Timeout.' };
                         renderDistanceError(messages[error.code] || 'Gagal mendapatkan lokasi.');
                     },
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -885,112 +956,75 @@
             });
         }
 
-        // ── 2. Tombol Cek Jarak manual (via alamat teks) ──────────────────────
         if (checkDistBtn && storeHasCoords) {
             checkDistBtn.addEventListener('click', async function () {
                 const address = document.getElementById('deliveryAddress').value.trim();
-                if (!address) {
-                    alert('Isi dulu alamat pengiriman.');
-                    return;
-                }
-
-                btnText.textContent      = '⏳ Mengecek jarak...';
-                checkDistBtn.disabled    = true;
+                if (!address) { alert('Isi dulu alamat pengiriman.'); return; }
+                btnText.textContent   = '⏳ Mengecek jarak...';
+                checkDistBtn.disabled = true;
                 distResultBox.classList.add('hidden');
-
                 try {
                     const resp = await fetch(checkDistUrl, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
                         body: JSON.stringify({ address }),
                     });
-
                     const data = await resp.json();
-
-                    if (!resp.ok || data.error) {
-                        throw new Error(data.message || 'Alamat tidak ditemukan. Coba lebih spesifik.');
-                    }
-
+                    if (!resp.ok || data.error) throw new Error(data.message || 'Alamat tidak ditemukan.');
                     renderDistanceResult(data, address);
-
-                } catch (err) {
-                    renderDistanceError(err.message);
-                } finally {
-                    btnText.textContent   = '🗺️ Cek Jarak & Ongkir';
-                    checkDistBtn.disabled = false;
-                }
+                } catch (err) { renderDistanceError(err.message); }
+                finally { btnText.textContent = '🗺️ Cek Jarak & Ongkir'; checkDistBtn.disabled = false; }
             });
         }
 
-        // Reset saat alamat diubah manual
         const deliveryAddressTA = document.getElementById('deliveryAddress');
-        if (deliveryAddressTA) {
-            deliveryAddressTA.addEventListener('input', resetDistance);
-        }
+        if (deliveryAddressTA) deliveryAddressTA.addEventListener('input', resetDistance);
     });
     </script>
 
     <style>
         @keyframes fade-in {
             from { opacity: 0; transform: translateY(-8px); }
-            to   { opacity: 1; transform: translateY(0);    }
+            to   { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in { animation: fade-in 0.3s ease-out; }
 
+        /* ── Variant buttons ── */
+        .variant-btn {
+            transition: border-color .15s ease, background .15s ease, color .15s ease, transform .15s ease;
+        }
+        .variant-btn:not(:disabled):hover  { transform: scale(1.04); }
+        .variant-btn:not(:disabled):active { transform: scale(0.96); }
+
+        /* ── Product card ── */
         .product-card {
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                        box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform .3s cubic-bezier(.4,0,.2,1), box-shadow .3s cubic-bezier(.4,0,.2,1);
             will-change: transform;
         }
         .product-card:hover:not(:has(.product-field:focus)) {
             transform: translateY(-4px);
-            box-shadow: 0 20px 40px -12px rgba(15, 23, 42, 0.18);
+            box-shadow: 0 20px 40px -12px rgba(15,23,42,.18);
         }
-        .product-card:has(.product-field:focus) {
-            transform: translateY(0) !important;
-        }
-        .product-card:hover:not(:has(.product-field:focus)) .product-card__img {
-            transform: scale(1.07);
-        }
-        .product-card__img {
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .product-card__overlay {
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .product-card:hover:not(:has(.product-field:focus)) .product-card__overlay {
-            opacity: 1;
-        }
+        .product-card:has(.product-field:focus) { transform: none !important; }
+        .product-card:hover:not(:has(.product-field:focus)) .product-card__img { transform: scale(1.07); }
+        .product-card__img     { transition: transform .5s cubic-bezier(.4,0,.2,1); }
+        .product-card__overlay { opacity: 0; transition: opacity .3s ease; }
+        .product-card:hover:not(:has(.product-field:focus)) .product-card__overlay { opacity: 1; }
+
+        /* ── Form fields ── */
         .product-field {
-            transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-            position: relative;
-            z-index: 1;
+            transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
+            position: relative; z-index: 1;
         }
-        .product-field:hover:not(:disabled) {
-            border-color: #fdba74;
-            background-color: #fff;
-        }
-        .product-field:focus {
-            border-color: #fb923c;
-            background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
-        }
+        .product-field:hover:not(:disabled) { border-color: #fdba74; background-color: #fff; }
+        .product-field:focus { border-color: #fb923c; background-color: #fff; box-shadow: 0 0 0 3px rgba(249,115,22,.12); }
+
+        /* ── Add to cart button ── */
         .product-btn {
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                        box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform .2s cubic-bezier(.4,0,.2,1), box-shadow .2s cubic-bezier(.4,0,.2,1);
         }
-        .product-btn:not(:disabled):hover {
-            transform: scale(1.03);
-            box-shadow: 0 8px 20px -6px rgba(249, 115, 22, 0.4);
-        }
-        .product-btn:not(:disabled):active {
-            transform: scale(0.97);
-        }
+        .product-btn:not(:disabled):hover  { transform: scale(1.03); box-shadow: 0 8px 20px -6px rgba(249,115,22,.4); }
+        .product-btn:not(:disabled):active { transform: scale(0.97); }
     </style>
 
     <script src="<?php echo e(asset('js/script.js')); ?>" defer></script>

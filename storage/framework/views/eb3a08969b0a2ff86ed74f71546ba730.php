@@ -1,255 +1,228 @@
 
 
+<?php $__env->startSection('title', 'Bukti Pembayaran - UP Cireng'); ?>
+<?php $__env->startSection('hide_nav', '0'); ?>
+<?php $__env->startSection('hide_footer', '1'); ?>
+
 <?php $__env->startSection('content'); ?>
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
-    <div class="max-w-2xl mx-auto">
+<div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-xl">
+
         
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-slate-800">
-                📸 Bukti Pembayaran
-            </h1>
-            <p class="text-slate-600 mt-2">
-                Referensi: <span class="font-mono text-sm bg-slate-200 px-2 py-1 rounded"><?php echo e($order->reference); ?></span>
-            </p>
+        <div class="mb-6 text-center animate-fadeIn">
+            <a href="<?php echo e(route('home')); ?>" class="inline-flex items-center gap-2 text-slate-500 hover:text-brand-500 text-sm font-semibold transition-colors mb-4">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Kembali ke Beranda
+            </a>
+            <div class="inline-flex items-center gap-2 rounded-full bg-brand-100 px-4 py-2">
+                <svg class="h-4 w-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span class="text-sm font-bold text-brand-700">Bukti Pembayaran</span>
+            </div>
         </div>
 
-        <!-- Main Card -->
-        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        
+        <div class="rounded-3xl bg-white shadow-panel border border-slate-100 overflow-hidden animate-scaleIn">
+
             
-            <!-- Image Container -->
-            <div class="relative bg-slate-900 p-6">
-                <div class="rounded-lg overflow-hidden bg-slate-800 aspect-video flex items-center justify-center">
-                    <img 
-                        id="proofImage"
-                        src="<?php echo e($previewUrl); ?>" 
-                        alt="Bukti Pembayaran" 
-                        class="w-full h-full object-contain"
-                        loading="lazy"
-                        onerror="handleImageError(this)"
-                    />
+            
+            <div class="relative bg-slate-50 border-b border-slate-100">
+                <div class="relative overflow-hidden">
+                    <img
+                        src="<?php echo e($previewUrl); ?>"
+                        alt="Bukti Pembayaran"
+                        class="w-full object-contain max-h-[520px]"
+                        style="min-height: 240px; background-color: #f8fafc;"
+                    >
                     
-                    <div id="imageFallback" class="hidden flex-col items-center justify-center text-slate-400 text-center p-8">
-                        <svg class="w-16 h-16 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    <div class="absolute bottom-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 backdrop-blur-sm">
+                        <svg class="h-3 w-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                         </svg>
-                        <p class="text-sm font-medium">Gambar tidak dapat dimuat</p>
-                        <a href="<?php echo e(route('payment.download', $order->id)); ?>" class="mt-3 text-xs text-blue-400 hover:underline">
-                            Download langsung →
-                        </a>
+                        <span class="text-[11px] font-bold text-white/90">Dilindungi watermark UP CIRENG</span>
                     </div>
                 </div>
+
                 
-                <!-- Watermark Info Badge -->
-                <div class="mt-4 text-center text-xs text-slate-400">
-                    <p>✓ Gambar dilindungi dengan watermark UP CIRENG</p>
+                <div class="py-3 flex justify-center border-t border-slate-100 bg-white">
+                    <a href="<?php echo e(route('payment.download', $order->id)); ?>"
+                       class="inline-flex items-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 px-4 py-2 text-xs font-bold text-slate-700 transition-all border border-slate-200">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Unduh Bukti
+                    </a>
                 </div>
             </div>
 
-            <!-- Order Details Section -->
-            <div class="p-8 space-y-6">
+            
+            <?php
+                $statusConfig = [
+                    'pending'    => ['bg' => 'bg-amber-50',   'border' => 'border-amber-200',  'text' => 'text-amber-800',  'dot' => 'bg-amber-400',  'pulse' => true],
+                    'processing' => ['bg' => 'bg-blue-50',    'border' => 'border-blue-200',   'text' => 'text-blue-800',   'dot' => 'bg-blue-400',   'pulse' => true],
+                    'delivering' => ['bg' => 'bg-violet-50',  'border' => 'border-violet-200', 'text' => 'text-violet-800', 'dot' => 'bg-violet-400', 'pulse' => false],
+                    'completed'  => ['bg' => 'bg-emerald-50', 'border' => 'border-emerald-200','text' => 'text-emerald-800','dot' => 'bg-emerald-500', 'pulse' => false],
+                    'cancelled'  => ['bg' => 'bg-rose-50',    'border' => 'border-rose-200',   'text' => 'text-rose-800',   'dot' => 'bg-rose-400',   'pulse' => false],
+                ];
+                $s = $statusConfig[$order->status] ?? $statusConfig['pending'];
+            ?>
+            <div class="mx-4 mt-4 rounded-2xl border <?php echo e($s['border']); ?> <?php echo e($s['bg']); ?> px-4 py-3.5 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="relative flex h-2.5 w-2.5 flex-shrink-0">
+                        <?php if($s['pulse']): ?>
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full <?php echo e($s['dot']); ?> opacity-75"></span>
+                        <?php endif; ?>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 <?php echo e($s['dot']); ?>"></span>
+                    </span>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-wider <?php echo e($s['text']); ?> opacity-60">Status Pesanan</p>
+                        <p class="font-black text-sm <?php echo e($s['text']); ?>"><?php echo e($status['icon']); ?> <?php echo e($status['label']); ?></p>
+                    </div>
+                </div>
+                <div class="text-right flex-shrink-0">
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tanggal</p>
+                    <p class="text-sm font-bold text-slate-600"><?php echo e($orderDate); ?></p>
+                </div>
+            </div>
+
+            
+            <div class="p-4 grid grid-cols-2 gap-3 mt-1">
                 
-                <!-- Customer Info -->
-                <div class="border-b border-slate-200 pb-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <p class="text-slate-600 text-sm font-medium">Nama Pemesan</p>
-                            <p class="text-lg font-semibold text-slate-900 mt-1">
-                                <?php echo e($customerName); ?>
-
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-slate-600 text-sm font-medium">No. Telepon</p>
-                            <p class="text-lg font-semibold text-slate-900 mt-1">
-                                <a href="tel:<?php echo e($order->customer_phone); ?>" class="text-blue-600 hover:underline">
-                                    <?php echo e($order->customer_phone); ?>
-
-                                </a>
-                            </p>
-                        </div>
-                    </div>
+                <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4">
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Nama Pemesan</p>
+                    <p class="font-black text-slate-900 text-base truncate"><?php echo e($customerName); ?></p>
                 </div>
 
-                <!-- Payment Details -->
-                <div class="border-b border-slate-200 pb-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <p class="text-slate-600 text-sm font-medium">Metode Pembayaran</p>
-                            <p class="text-lg font-semibold text-slate-900 mt-1 capitalize">
-                                <?php echo e(str_replace('_', ' ', $order->payment_method)); ?>
-
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-slate-600 text-sm font-medium">Total Pembayaran</p>
-                            <p class="text-2xl font-bold text-emerald-600 mt-1">
-                                <?php echo e($totalPrice); ?>
-
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Order Status -->
-                <div class="bg-gradient-to-r <?php echo e($status['color'] === 'yellow' ? 'from-yellow-50 to-yellow-100' :
-                    ($status['color'] === 'blue' ? 'from-blue-50 to-blue-100' :
-                    ($status['color'] === 'indigo' ? 'from-indigo-50 to-indigo-100' :
-                    ($status['color'] === 'green' ? 'from-green-50 to-green-100' :
-                    ($status['color'] === 'red' ? 'from-red-50 to-red-100' :
-                    'from-gray-50 to-gray-100'))))); ?> rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-slate-600">Status Pesanan</p>
-                            <p class="text-lg font-semibold text-slate-900 mt-1">
-                                <?php echo e($status['icon']); ?> <?php echo e($status['label']); ?>
-
-                            </p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-xs text-slate-600">Tanggal Pesanan</p>
-                            <p class="text-sm font-medium text-slate-900 mt-1">
-                                <?php echo e($orderDate); ?>
-
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Items Summary -->
                 
-                <?php
-                    $itemsSummary = $order->items_summary ?? [];
-                ?>
+                <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4">
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">No. Telepon</p>
+                    <?php if($order->customer_phone): ?>
+                        <a href="tel:<?php echo e($order->customer_phone); ?>" class="font-black text-brand-600 text-base hover:text-brand-700 truncate block">
+                            <?php echo e($order->customer_phone); ?>
 
-                <?php if(count($itemsSummary) > 0): ?>
-                <div class="border-t border-slate-200 pt-6">
-                    <p class="text-sm font-medium text-slate-600 mb-4">Pesanan Anda:</p>
-                    <div class="space-y-3">
-                        <?php $__currentLoopData = $itemsSummary; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <div class="flex justify-between items-start bg-slate-50 p-3 rounded-lg">
-                            <div class="flex-1">
-                                
-                                <p class="font-medium text-slate-900">
-                                    <?php echo e($item['product_name'] ?? 'Produk'); ?>
+                        </a>
+                    <?php else: ?>
+                        <p class="font-bold text-slate-500 text-sm">—</p>
+                    <?php endif; ?>
+                </div>
 
-                                </p>
-                                <p class="text-sm text-slate-600 mt-1">
-                                    <?php echo e($item['quantity'] ?? 1); ?>x 
-                                    @ Rp <?php echo e(number_format($item['unit_price'] ?? 0, 0, ',', '.')); ?>
+                
+                <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4">
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Metode Bayar</p>
+                    <p class="font-black text-slate-900 text-base">
+                        <?php echo e(ucwords(str_replace('_', ' ', $order->payment_method ?? 'QRIS'))); ?>
 
+                    </p>
+                </div>
+
+                
+                <div class="rounded-2xl bg-gradient-to-br from-brand-50 to-brand-100/60 border border-brand-200/60 p-4">
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-brand-500 mb-1.5">Total Bayar</p>
+                    <p class="font-black text-brand-700 text-base"><?php echo e($totalPrice); ?></p>
+                </div>
+            </div>
+
+            
+            <?php if($order->items_summary && count($order->items_summary) > 0): ?>
+            <div class="px-4 pb-2">
+                <div class="rounded-2xl border border-slate-100 bg-slate-50 overflow-hidden">
+                    <div class="px-4 py-3 border-b border-slate-100 bg-white">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Pesanan Anda</p>
+                    </div>
+                    <div class="divide-y divide-slate-100">
+                        <?php $__currentLoopData = $order->items_summary; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <div class="px-4 py-3 flex items-center justify-between gap-3">
+                            <div class="min-w-0 flex-1">
+                                <p class="font-bold text-slate-900 text-sm truncate"><?php echo e($item['name'] ?? 'Produk'); ?></p>
+                                <p class="text-xs text-slate-500 mt-0.5">
+                                    <?php echo e($item['quantity'] ?? 1); ?>x
+                                    <?php if(!empty($item['variant'])): ?> · <?php echo e($item['variant']); ?><?php endif; ?>
                                 </p>
-                                <?php if(!empty($item['variant'])): ?>
-                                <p class="text-xs text-slate-500 mt-1">
-                                    <span class="bg-slate-200 px-2 py-0.5 rounded"><?php echo e($item['variant']); ?></span>
-                                </p>
-                                <?php endif; ?>
                             </div>
-                            
-                            <p class="font-semibold text-slate-900 ml-4 flex-shrink-0">
-                                Rp <?php echo e(number_format(
-                                    $item['subtotal'] ?? (($item['unit_price'] ?? 0) * ($item['quantity'] ?? 1)),
-                                    0, ',', '.'
-                                )); ?>
+                            <p class="font-black text-slate-900 text-sm flex-shrink-0">
+                                Rp <?php echo e(number_format(($item['price'] ?? 0) * ($item['quantity'] ?? 1), 0, ',', '.')); ?>
 
                             </p>
                         </div>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
-
                     
-                    <div class="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center">
-                        <p class="font-semibold text-slate-700">Total</p>
-                        <p class="text-lg font-bold text-emerald-600"><?php echo e($totalPrice); ?></p>
+                    <div class="px-4 py-3 bg-white border-t border-slate-200 flex items-center justify-between">
+                        <p class="font-bold text-slate-500 text-sm">Total</p>
+                        <p class="font-black text-brand-600 text-base"><?php echo e($totalPrice); ?></p>
                     </div>
                 </div>
+            </div>
+            <?php endif; ?>
 
-                <?php elseif($order->product_name): ?>
-                
-                <div class="border-t border-slate-200 pt-6">
-                    <p class="text-sm font-medium text-slate-600 mb-4">Pesanan Anda:</p>
-                    <div class="bg-slate-50 p-3 rounded-lg flex justify-between items-start">
-                        <div class="flex-1">
-                            <p class="font-medium text-slate-900"><?php echo e($order->product_name); ?></p>
-                            <p class="text-sm text-slate-600 mt-1">
-                                <?php echo e($order->quantity); ?>x 
-                                @ Rp <?php echo e(number_format($order->price_per_unit, 0, ',', '.')); ?>
-
-                            </p>
-                        </div>
-                        <p class="font-semibold text-slate-900 ml-4 flex-shrink-0">
-                            Rp <?php echo e(number_format($order->total_price, 0, ',', '.')); ?>
-
+            
+            <?php if($order->status === 'pending'): ?>
+            <div class="mx-4 mb-4 mt-3 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3.5">
+                <div class="flex gap-2.5">
+                    <span class="text-lg flex-shrink-0 mt-0.5">⏳</span>
+                    <div>
+                        <p class="font-bold text-amber-800 text-sm">Menunggu verifikasi admin</p>
+                        <p class="text-xs text-amber-700 mt-1 leading-relaxed">
+                            Pembayaran Anda sedang dicek oleh admin. Biasanya selesai dalam 5–15 menit.
+                            Anda akan mendapat notifikasi setelah diverifikasi.
                         </p>
                     </div>
-                    <div class="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center">
-                        <p class="font-semibold text-slate-700">Total</p>
-                        <p class="text-lg font-bold text-emerald-600"><?php echo e($totalPrice); ?></p>
+                </div>
+            </div>
+            <?php elseif($order->status === 'processing'): ?>
+            <div class="mx-4 mb-4 mt-3 rounded-2xl bg-blue-50 border border-blue-200 px-4 py-3.5">
+                <div class="flex gap-2.5">
+                    <span class="text-lg flex-shrink-0">⚙️</span>
+                    <div>
+                        <p class="font-bold text-blue-800 text-sm">Pembayaran terverifikasi!</p>
+                        <p class="text-xs text-blue-700 mt-1">Pesanan Anda sedang diproses oleh admin.</p>
                     </div>
                 </div>
-                <?php endif; ?>
-
             </div>
+            <?php elseif($order->status === 'completed'): ?>
+            <div class="mx-4 mb-4 mt-3 rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3.5">
+                <div class="flex gap-2.5">
+                    <span class="text-lg flex-shrink-0">✅</span>
+                    <div>
+                        <p class="font-bold text-emerald-800 text-sm">Pembayaran terverifikasi!</p>
+                        <p class="text-xs text-emerald-700 mt-1">Pesanan Anda sudah selesai diproses.</p>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
 
-            <!-- Action Buttons -->
-            <div class="bg-slate-50 px-8 py-6 border-t border-slate-200 flex flex-col md:flex-row gap-3 justify-center">
-                <a 
-                    href="<?php echo e(route('payment.download', $order->id)); ?>"
-                    download
-                    class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
-                >
-                    📥 Download Bukti
+            
+            <div class="px-4 pb-5 pt-2 flex flex-col gap-2 sm:flex-row">
+                <a href="<?php echo e(route('orders.my')); ?>"
+                   class="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-ink-950 to-brand-600 px-5 py-3.5 text-sm font-bold text-white transition-all hover:shadow-float hover:-translate-y-0.5">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                    Lihat Pesanan Saya
                 </a>
-                
-                <button 
-                    type="button"
-                    onclick="sharePaymentProof()"
-                    class="inline-flex items-center justify-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
-                >
-                    💬 Bagikan ke WhatsApp
-                </button>
-
-                <a 
-                    href="<?php echo e(route('orders.my')); ?>"
-                    class="inline-flex items-center justify-center px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-lg transition-colors"
-                >
-                    ← Kembali ke Pesanan
+                <a href="<?php echo e(route('payment.download', $order->id)); ?>"
+                   class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-5 py-3.5 text-sm font-bold text-slate-700 transition-all hover:border-brand-300 hover:bg-brand-50">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Unduh
                 </a>
             </div>
 
         </div>
 
-        <!-- Footer Info -->
-        <div class="mt-8 text-center text-slate-600 text-sm">
-            <p>
-                Data pemesanan Anda aman dan dilindungi. 
-                <br>
-                Jika ada pertanyaan, hubungi kami melalui WhatsApp.
+        
+        <div class="mt-6 text-center">
+            <p class="text-xs text-slate-400 font-medium">
+                UP Cireng · Order System ·
+                <a href="<?php echo e(route('home')); ?>" class="text-brand-500 hover:text-brand-600 font-bold">Kembali ke Menu</a>
             </p>
         </div>
 
     </div>
 </div>
-
-<script>
-// ── Image error handler ────────────────────────────────────────────────────
-function handleImageError(img) {
-    img.style.display = 'none';
-    const fallback = document.getElementById('imageFallback');
-    if (fallback) {
-        fallback.classList.remove('hidden');
-        fallback.classList.add('flex');
-    }
-}
-
-// ── WhatsApp share ─────────────────────────────────────────────────────────
-function sharePaymentProof() {
-    const orderRef   = "<?php echo e($order->reference); ?>";
-    const paymentUrl = "<?php echo e(route('payment.proof', $order->id)); ?>";
-    const message    = `📸 Bukti Pembayaran\n\nReferensi: ${orderRef}\nTotal: <?php echo e($totalPrice); ?>\n\nLihat bukti: ${paymentUrl}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-}
-</script>
-
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layout.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\user\Desktop\UP Cireng\upcireng\resources\views/payment/preview.blade.php ENDPATH**/ ?>

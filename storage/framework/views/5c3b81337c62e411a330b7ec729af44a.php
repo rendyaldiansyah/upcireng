@@ -1,13 +1,11 @@
-@extends('layout.app')
+<?php $__env->startSection('title', 'Masuk | UP Cireng'); ?>
+<?php $__env->startSection('hide_footer', '1'); ?>
+<?php $__env->startSection('body_class', 'antialiased'); ?>
 
-@section('title', 'Masuk | UP Cireng')
-@section('hide_footer', '1')
-@section('body_class', 'antialiased')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <section class="relative min-h-screen overflow-hidden bg-[#fffaf5]">
 
-    {{-- Background --}}
+    
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,146,60,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(249,115,22,0.12),transparent_28%),linear-gradient(135deg,#fffaf5_0%,#fff_46%,#fff2e8_100%)]"></div>
     <div class="pointer-events-none absolute inset-0 opacity-[0.04]"
          style="background-image: linear-gradient(rgba(0,0,0,.22) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,.22) 1px, transparent 1px); background-size: 64px 64px;">
@@ -19,7 +17,7 @@
     <div class="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl items-center px-4 py-8 sm:px-6 lg:px-8">
         <div class="grid w-full gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
 
-            {{-- LEFT --}}
+            
             <section class="hidden lg:block">
                 <div class="max-w-2xl">
                     <div class="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.3em] text-orange-600 shadow-sm">
@@ -119,11 +117,11 @@
                 </div>
             </section>
 
-            {{-- RIGHT --}}
+            
             <section class="mx-auto w-full max-w-md">
                 <div class="mb-6 text-center lg:hidden animate-fade-up">
                     <div class="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-orange-200 bg-white shadow-lg">
-                        <img src="{{ asset('assets/assets/logo.png') }}" alt="UP Cireng" class="h-10 w-10 rounded-xl object-cover">
+                        <img src="<?php echo e(asset('assets/assets/logo.png')); ?>" alt="UP Cireng" class="h-10 w-10 rounded-xl object-cover">
                     </div>
                     <h1 class="text-2xl font-extrabold text-slate-900">Masuk</h1>
                     <p class="mt-1 text-sm text-slate-500">UP Cireng Customer Access</p>
@@ -145,22 +143,23 @@
                             </p>
                         </div>
 
-                        @if($errors->any())
+                        <?php if($errors->any()): ?>
                             <div class="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 animate-shake">
-                                @foreach($errors->all() as $error)
-                                    <p>{{ $error }}</p>
-                                @endforeach
+                                <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <p><?php echo e($error); ?></p>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </div>
-                        @endif
+                        <?php endif; ?>
 
-                        @if(session('error'))
+                        <?php if(session('error')): ?>
                             <div class="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 animate-shake">
-                                {{ session('error') }}
-                            </div>
-                        @endif
+                                <?php echo e(session('error')); ?>
 
-                        <form action="{{ route('auth.login') }}" method="POST" class="space-y-4">
-                            @csrf
+                            </div>
+                        <?php endif; ?>
+
+                        <form action="<?php echo e(route('auth.login')); ?>" method="POST" class="space-y-4">
+                            <?php echo csrf_field(); ?>
 
                             <div class="group animate-slide-in-right" style="animation-delay: 0.15s">
                                 <label for="login_name" class="mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-500">
@@ -176,16 +175,30 @@
                                         id="login_name"
                                         type="text"
                                         name="name"
-                                        value="{{ old('name') }}"
+                                        value="<?php echo e(old('name')); ?>"
                                         autocomplete="name"
                                         placeholder="Contoh: Rendy Al Diansyah"
-                                        class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 placeholder:text-slate-400 focus:border-orange-300 focus:ring-4 focus:ring-orange-100 focus:shadow-md hover:border-orange-200 @error('name') border-rose-300 bg-rose-50 @enderror"
+                                        class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 placeholder:text-slate-400 focus:border-orange-300 focus:ring-4 focus:ring-orange-100 focus:shadow-md hover:border-orange-200 <?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-rose-300 bg-rose-50 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                                         required
                                     >
                                 </div>
-                                @error('name')
-                                    <p class="mt-1.5 text-xs font-medium text-rose-600">{{ $message }}</p>
-                                @enderror
+                                <?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <p class="mt-1.5 text-xs font-medium text-rose-600"><?php echo e($message); ?></p>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                             </div>
 
                             <div class="group animate-slide-in-right" style="animation-delay: 0.2s">
@@ -202,16 +215,30 @@
                                         id="login_phone"
                                         type="tel"
                                         name="phone"
-                                        value="{{ old('phone') }}"
+                                        value="<?php echo e(old('phone')); ?>"
                                         autocomplete="tel"
                                         placeholder="08xx xxxx xxxx"
-                                        class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 placeholder:text-slate-400 focus:border-orange-300 focus:ring-4 focus:ring-orange-100 focus:shadow-md hover:border-orange-200 @error('phone') border-rose-300 bg-rose-50 @enderror"
+                                        class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 placeholder:text-slate-400 focus:border-orange-300 focus:ring-4 focus:ring-orange-100 focus:shadow-md hover:border-orange-200 <?php $__errorArgs = ['phone'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-rose-300 bg-rose-50 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                                         required
                                     >
                                 </div>
-                                @error('phone')
-                                    <p class="mt-1.5 text-xs font-medium text-rose-600">{{ $message }}</p>
-                                @enderror
+                                <?php $__errorArgs = ['phone'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <p class="mt-1.5 text-xs font-medium text-rose-600"><?php echo e($message); ?></p>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                                 <p class="mt-1.5 text-xs text-slate-400">
                                     Nomor yang sama akan masuk ke akun yang sama.
                                 </p>
@@ -242,7 +269,7 @@
 
                         <p class="mt-5 text-center text-xs text-slate-400 animate-fade-up" style="animation-delay: 0.35s">
                             Ingin lihat menu dulu?
-                            <a href="{{ route('home') }}" class="font-bold text-orange-500 transition hover:text-orange-600">Kembali ke Menu</a>
+                            <a href="<?php echo e(route('home')); ?>" class="font-bold text-orange-500 transition hover:text-orange-600">Kembali ke Menu</a>
                         </p>
                     </div>
                 </div>
@@ -363,7 +390,7 @@
             });
         }
 
-        document.querySelector('form[action="{{ route('auth.login') }}"]')?.addEventListener('submit', function () {
+        document.querySelector('form[action="<?php echo e(route('auth.login')); ?>"]')?.addEventListener('submit', function () {
             const btn = this.querySelector('button[type="submit"]');
             if (!btn) return;
             btn.disabled = true;
@@ -374,4 +401,5 @@
         });
     })();
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layout.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\user\Desktop\UP Cireng\upcireng\resources\views/auth/login.blade.php ENDPATH**/ ?>

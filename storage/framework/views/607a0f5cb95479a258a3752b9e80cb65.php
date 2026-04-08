@@ -1,29 +1,26 @@
-{{-- resources/views/auth/admin_login.blade.php --}}
-@extends('layout.app')
+<?php $__env->startSection('title', 'Admin — Warung Cireng'); ?>
+<?php $__env->startSection('hide_nav', '1'); ?>
+<?php $__env->startSection('hide_footer', '1'); ?>
+<?php $__env->startSection('body_class', 'antialiased'); ?>
 
-@section('title', 'Admin — Warung Cireng')
-@section('hide_nav', '1')
-@section('hide_footer', '1')
-@section('body_class', 'antialiased')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-orange-50 via-amber-50 to-white">
 
-    {{-- ============================================================ --}}
-    {{-- BACKGROUND LAYER: Dinamis, berlapis, dan bergerak         --}}
-    {{-- ============================================================ --}}
+    
+    
+    
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(251,146,60,0.25),_transparent_50%),radial-gradient(ellipse_at_bottom_right,_rgba(249,115,22,0.2),_transparent_50%)] animate-bg-pulse"></div>
     <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23f97316" fill-opacity="0.04"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-40"></div>
 
-    {{-- ============================================================ --}}
-    {{-- PARTIKEL 100+ (BERGERAK DINAMIS, WARNA ORANGE & PUTIH)    --}}
-    {{-- ============================================================ --}}
+    
+    
+    
     <div class="pointer-events-none absolute inset-0 overflow-hidden">
-        @php
+        <?php
             $colors = ['#f97316', '#fb923c', '#fdba74', '#ffedd5', '#ffffff', '#ea580c'];
-        @endphp
-        @for($i = 0; $i < 120; $i++)
-            @php
+        ?>
+        <?php for($i = 0; $i < 120; $i++): ?>
+            <?php
                 $size = rand(2, 14);
                 $duration = rand(6, 28);
                 $delay = rand(0, 25);
@@ -33,13 +30,13 @@
                 $opacity = rand(15, 55) / 100;
                 $blur = $size > 8 ? rand(1, 3) : 0;
                 $animType = rand(0, 4);
-            @endphp
+            ?>
             <div class="absolute rounded-full"
-                 style="width: {{ $size }}px; height: {{ $size }}px; background: {{ $color }}; left: {{ $left }}%; top: {{ $top }}%; opacity: {{ $opacity }}; filter: blur({{ $blur }}px); animation: float-particle-{{ $animType }} {{ $duration }}s linear infinite; animation-delay: -{{ $delay }}s;">
+                 style="width: <?php echo e($size); ?>px; height: <?php echo e($size); ?>px; background: <?php echo e($color); ?>; left: <?php echo e($left); ?>%; top: <?php echo e($top); ?>%; opacity: <?php echo e($opacity); ?>; filter: blur(<?php echo e($blur); ?>px); animation: float-particle-<?php echo e($animType); ?> <?php echo e($duration); ?>s linear infinite; animation-delay: -<?php echo e($delay); ?>s;">
             </div>
-        @endfor
+        <?php endfor; ?>
 
-        {{-- Floating orbs dengan ukuran besar dan efek glow --}}
+        
         <div class="absolute top-1/5 left-1/6 h-96 w-96 rounded-full bg-orange-300/20 blur-3xl animate-float-orb1"></div>
         <div class="absolute bottom-1/4 right-1/5 h-[30rem] w-[30rem] rounded-full bg-amber-300/25 blur-3xl animate-float-orb2"></div>
         <div class="absolute top-2/3 left-1/2 h-80 w-80 rounded-full bg-orange-400/15 blur-3xl animate-float-orb3"></div>
@@ -47,18 +44,18 @@
         <div class="absolute -bottom-40 -left-40 h-[450px] w-[450px] rounded-full bg-amber-200/25 blur-3xl animate-pulse-glow-delay"></div>
     </div>
 
-    {{-- ============================================================ --}}
-    {{-- CURSOR SPOTLIGHT (Efek sorot mengikuti mouse)              --}}
-    {{-- ============================================================ --}}
+    
+    
+    
     <div id="cursorSpotlight" class="pointer-events-none fixed z-20 h-96 w-96 rounded-full bg-orange-400/8 blur-3xl transition-all duration-150" style="display: none;"></div>
 
-    {{-- ============================================================ --}}
-    {{-- MAIN CONTAINER                                             --}}
-    {{-- ============================================================ --}}
+    
+    
+    
     <div class="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl items-center px-4 py-8 sm:px-6 lg:px-8">
         <div class="grid w-full gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
 
-            {{-- LEFT / BRAND SECTION (lebih hidup dan antusias) --}}
+            
             <section class="hidden lg:block">
                 <div class="max-w-xl">
                     <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white/80 px-5 py-2.5 text-xs font-black tracking-[0.22em] text-orange-600 shadow-lg backdrop-blur-md animate-slide-in-left">
@@ -97,7 +94,7 @@
                     </div>
                 </div>
 
-                {{-- Dekorasi animasi 3D dengan floating cards --}}
+                
                 <div class="relative mt-16 h-[460px]">
                     <div class="absolute left-10 top-8 h-32 w-32 rounded-[2rem] border border-orange-200 bg-white/50 shadow-2xl backdrop-blur-xl animate-float-card-1"></div>
                     <div class="absolute right-20 top-28 h-24 w-24 rounded-2xl border border-amber-200 bg-orange-100/60 shadow-xl backdrop-blur-xl animate-float-card-2"></div>
@@ -135,23 +132,23 @@
                 </div>
             </section>
 
-            {{-- RIGHT / LOGIN CARD (efek paling ekstrim) --}}
+            
             <section class="mx-auto w-full max-w-md">
                 <div class="mb-6 text-center lg:hidden animate-fade-up">
                     <div class="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-orange-200 bg-white shadow-lg">
-                        <img src="{{ asset('assets/assets/logo.png') }}" alt="Warung Cireng" class="h-10 w-10 rounded-xl object-cover">
+                        <img src="<?php echo e(asset('assets/assets/logo.png')); ?>" alt="Warung Cireng" class="h-10 w-10 rounded-xl object-cover">
                     </div>
                     <h1 class="text-2xl font-black text-slate-900">Admin Panel</h1>
                     <p class="mt-1 text-sm text-slate-500">Warung Cireng</p>
                 </div>
 
-                {{-- CARD UTAMA dengan efek 3D tilt ekstrim, border gradien berjalan, dan mouse spotlight --}}
+                
                 <div class="login-shell relative overflow-hidden rounded-[2.5rem] border border-white/80 bg-white/80 p-6 shadow-[0_40px_90px_rgba(0,0,0,0.12)] backdrop-blur-2xl sm:p-8 transition-all duration-500 hover:shadow-orange-200/60">
-                    {{-- Animated gradient border (berjalan) --}}
+                    
                     <div class="absolute inset-0 rounded-[2.5rem] bg-gradient-to-r from-orange-400 via-orange-500 to-amber-400 opacity-0 blur-lg transition-opacity duration-500 group-hover:opacity-100 pointer-events-none -z-10 animate-border-run"></div>
                     <div class="absolute inset-[2px] rounded-[2.5rem] bg-white/95 backdrop-blur-md -z-5"></div>
 
-                    {{-- Mouse-follow spotlight intens --}}
+                    
                     <div class="pointer-events-none absolute inset-0 rounded-[2.5rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" id="spotlight"></div>
 
                     <div class="relative z-10">
@@ -165,15 +162,15 @@
                             </p>
                         </div>
 
-                        @if($errors->any() || session('error'))
+                        <?php if($errors->any() || session('error')): ?>
                             <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 animate-shake">
-                                @foreach($errors->all() as $err) <p class="flex items-center gap-2"><svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>{{ $err }}</p> @endforeach
-                                @if(session('error')) <p>{{ session('error') }}</p> @endif
+                                <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $err): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> <p class="flex items-center gap-2"><svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg><?php echo e($err); ?></p> <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php if(session('error')): ?> <p><?php echo e(session('error')); ?></p> <?php endif; ?>
                             </div>
-                        @endif
+                        <?php endif; ?>
 
-                        <form action="{{ route('admin.auth.login') }}" method="POST" id="adminForm" class="space-y-5">
-                            @csrf
+                        <form action="<?php echo e(route('admin.auth.login')); ?>" method="POST" id="adminForm" class="space-y-5">
+                            <?php echo csrf_field(); ?>
 
                             <div class="group animate-slide-in-right" style="animation-delay: 0.15s">
                                 <label for="admin_email" class="mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-500">
@@ -183,7 +180,7 @@
                                     <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-all duration-300 group-focus-within:text-orange-500 group-focus-within:scale-110">
                                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/></svg>
                                     </span>
-                                    <input id="admin_email" type="text" name="email" value="{{ old('email') }}" autocomplete="username"
+                                    <input id="admin_email" type="text" name="email" value="<?php echo e(old('email')); ?>" autocomplete="username"
                                            placeholder="admin@warungcireng.id"
                                            class="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3.5 pl-12 text-sm font-semibold text-slate-900 outline-none transition-all duration-300 placeholder:text-slate-400 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-100 focus:shadow-lg hover:border-orange-300"
                                            required>
@@ -226,7 +223,7 @@
                 </div>
 
                 <div class="mt-8 text-center animate-fade-up" style="animation-delay: 0.3s">
-                    <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition-all duration-300 hover:text-orange-500 hover:gap-3 hover:scale-105">
+                    <a href="<?php echo e(route('home')); ?>" class="inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition-all duration-300 hover:text-orange-500 hover:gap-3 hover:scale-105">
                         <svg class="h-4 w-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                         Kembali ke website
                     </a>
@@ -359,4 +356,5 @@
         });
     })();
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layout.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\user\Desktop\UP Cireng\upcireng\resources\views/auth/admin_login.blade.php ENDPATH**/ ?>

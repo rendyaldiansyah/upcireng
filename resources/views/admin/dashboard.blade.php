@@ -35,7 +35,7 @@
     $adminSidebarTitle = 'Dashboard Ringkasan';
     $adminSidebarMetricLabel = 'Pesanan Aktif';
     $adminSidebarMetricValue = ($pendingOrders ?? 0) + ($processingOrders ?? 0);
-    $adminSidebarBody = 'Metrik real-time lengkap dari database Laravel.';
+    $adminSidebarBody = 'Kelola Pesanan ADMIN UP CIRENG.';
 @endphp
 
 <div class="min-h-screen lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">

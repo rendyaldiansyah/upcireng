@@ -27,6 +27,22 @@
             <span class="font-semibold text-slate-900">Orders</span>
         </nav>
 
+        {{-- Flash Messages --}}
+        @if(session('success'))
+            <div class="mb-6 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                <svg class="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="mb-6 flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+                ⚠️ {{ session('error') }}
+            </div>
+        @endif
+
         {{-- Hero Header --}}
         <section class="mb-8 rounded-2xl bg-gradient-to-r from-slate-50 to-brand-50 p-5 sm:p-7 shadow-md border border-slate-100">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -108,6 +124,42 @@
                 <article class="relative group rounded-2xl bg-white p-5 sm:p-6 shadow-sm border border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 overflow-hidden">
                     <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-brand-500/5 to-transparent"></div>
 
+                    {{-- FIX: Banner khusus untuk pesanan pending dengan bukti bayar — minta admin verifikasi --}}
+                    @if($order->status === 'pending' && $order->payment_proof_path)
+                        <div class="relative mb-4 flex items-center gap-3 rounded-xl border-2 border-amber-300 bg-amber-50 px-4 py-3">
+                            <span class="text-xl flex-shrink-0">🔔</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-amber-800">Bukti pembayaran diterima — menunggu verifikasi Anda</p>
+                                <p class="text-xs text-amber-600 mt-0.5">Customer sudah upload bukti transfer. Silakan cek dan verifikasi.</p>
+                            </div>
+                            {{-- ★ Tombol Verifikasi Cepat --}}
+                            <form action="{{ route('admin.order.status', $order) }}" method="POST" class="flex-shrink-0">
+                                @csrf
+                                @method('PUT')
+                                <input type="hidden" name="status" value="processing">
+                                <button type="submit"
+                                        class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition hover:shadow-md whitespace-nowrap">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    Verifikasi
+                                </button>
+                            </form>
+                        </div>
+                    @elseif($order->status === 'pending' && !$order->payment_proof_path)
+                        {{-- Pending tapi belum upload bukti (COD atau belum upload) --}}
+                        <div class="relative mb-4 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5">
+                            <span class="text-base flex-shrink-0">⏳</span>
+                            <p class="text-xs font-semibold text-slate-600">
+                                @if($order->payment_method === 'cod')
+                                    Metode COD — tidak perlu bukti transfer
+                                @else
+                                    Menunggu customer upload bukti pembayaran
+                                @endif
+                            </p>
+                        </div>
+                    @endif
+
                     <div class="relative flex flex-col lg:flex-row lg:items-start lg:gap-6">
 
                         {{-- Left: Order Info --}}
@@ -159,23 +211,65 @@
                             <div class="rounded-xl bg-slate-50 p-4 border border-slate-200">
                                 <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Payment Details</p>
                                 <p class="text-xl font-black text-ink-950 mb-1">{{ $order->formatPrice() }}</p>
-                                <p class="text-xs font-bold uppercase text-slate-500 mb-3">{{ $order->payment_method }}</p>
+                                {{-- FIX: format payment method (bank_transfer → Bank Transfer) --}}
+                                <p class="text-xs font-bold text-slate-500 mb-3">
+                                    {{ ucwords(str_replace('_', ' ', $order->payment_method)) }}
+                                </p>
                                 @if($order->payment_proof_url)
                                     <a href="{{ $order->payment_proof_url }}" target="_blank"
                                        class="inline-flex items-center justify-center gap-2 w-full rounded-xl bg-brand-500 hover:bg-brand-600 px-4 py-2 text-sm font-bold text-white transition">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                         </svg>
-                                        View Proof
+                                        Lihat Bukti Bayar
                                     </a>
                                 @endif
                             </div>
 
-                            {{-- Status Update --}}
+                            {{-- ★ QUICK ACTION: Verifikasi Pembayaran (khusus pending + ada bukti) --}}
+                            @if($order->status === 'pending' && $order->payment_proof_path)
+                                <div class="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-4">
+                                    <p class="text-xs font-bold uppercase tracking-wider text-emerald-700 mb-3">
+                                        ✓ Aksi Verifikasi
+                                    </p>
+                                    <div class="space-y-2">
+                                        {{-- Approve --}}
+                                        <form action="{{ route('admin.order.status', $order) }}" method="POST">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="hidden" name="status" value="processing">
+                                            <button type="submit"
+                                                    class="w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition hover:shadow-md flex items-center justify-center gap-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                                Verifikasi & Proses
+                                            </button>
+                                        </form>
+                                        {{-- Reject --}}
+                                        <form action="{{ route('admin.order.status', $order) }}" method="POST">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="hidden" name="status" value="cancelled">
+                                            <input type="hidden" name="cancel_reason" value="Bukti pembayaran tidak valid">
+                                            <button type="submit"
+                                                    onclick="return confirm('Tolak & batalkan pesanan ini?')"
+                                                    class="w-full rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-bold text-rose-600 hover:bg-rose-50 transition flex items-center justify-center gap-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                                Tolak Pembayaran
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- Status Update Manual --}}
                             <form action="{{ route('admin.order.status', $order) }}" method="POST" class="space-y-2">
                                 @csrf
                                 @method('PUT')
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Update Status</label>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Update Status Manual</label>
                                 <select name="status"
                                         class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold bg-white focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition">
                                     @foreach(\App\Models\Order::statusOptions() as $status)
@@ -183,7 +277,7 @@
                                     @endforeach
                                 </select>
                                 <textarea name="cancel_reason" rows="2"
-                                          placeholder="Reason (if cancelled)"
+                                          placeholder="Alasan (jika dibatalkan)"
                                           class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition resize-none">{{ old('cancel_reason', $order->cancel_reason) }}</textarea>
                                 <button type="submit"
                                         class="w-full rounded-xl bg-brand-500 hover:bg-brand-600 px-4 py-2 text-sm font-bold text-white transition hover:shadow-md">
@@ -194,12 +288,12 @@
                             {{-- Delete --}}
                             <form action="{{ route('admin.order.delete', $order) }}" method="POST"
                                   class="pt-3 border-t border-slate-200"
-                                  onsubmit="return confirm('Delete this order permanently?')">
+                                  onsubmit="return confirm('Hapus pesanan ini secara permanen?')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit"
                                         class="w-full rounded-xl border border-rose-200 px-4 py-2 text-sm font-bold text-rose-600 hover:bg-rose-50 hover:border-rose-400 transition bg-white">
-                                    Delete Order
+                                    Hapus Pesanan
                                 </button>
                             </form>
                         </div>
