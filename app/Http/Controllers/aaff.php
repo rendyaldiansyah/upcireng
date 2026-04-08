@@ -68,7 +68,7 @@ class OrderController extends Controller
         }
 
         $storeOpen = Setting::isStoreOpen();
-        $hours = Setting::getOperatingHours();
+        $hours     = Setting::getOperatingHours();
 
         $products = Product::query()
             ->where('status', 'active')
@@ -80,15 +80,12 @@ class OrderController extends Controller
 
         // Get QRIS image for checkout display
         $qrisImage = Setting::getSetting('qris_image', '');
-        $qrisUrl = null;
-        
-        // Debug QRIS loading
+        $qrisUrl   = null;
+
         if ($qrisImage) {
-            // Normalize path separators for Windows compatibility
             $qrisImage = str_replace('\\', '/', $qrisImage);
-            
-            // Check if file physically exists in storage/app/public/
-            $fullPath = storage_path('app/public/' . $qrisImage);
+            $fullPath  = storage_path('app/public/' . $qrisImage);
+
             if (file_exists($fullPath)) {
                 $qrisUrl = asset('storage/' . $qrisImage);
                 Log::info('QRIS found', ['qrisImage' => $qrisImage, 'qrisUrl' => $qrisUrl, 'path' => $fullPath]);
@@ -98,7 +95,7 @@ class OrderController extends Controller
         } else {
             Log::info('No QRIS image setting found');
         }
-        
+
         return view('order.create', compact('user', 'products', 'storeOpen', 'hours', 'qrisUrl'));
     }
 
@@ -125,19 +122,18 @@ class OrderController extends Controller
         $request->merge(['items' => $items]);
 
         $rules = [
-            'customer_name'    => 'required|string|min:3|max:100',
-            'customer_phone'   => 'required|string|min:9|max:15|regex:/^[0-9+\-\s()]{9,}$/',
-            'customer_email'   => 'required|email|max:100',
-            'delivery_address' => 'required|string|min:10|max:500',
-            'payment_method'   => 'required|in:cod,bank_transfer,ewallet,qris',
-            'notes'            => 'nullable|string|max:1000',
-            'items'            => 'required|array|min:1',
+            'customer_name'      => 'required|string|min:3|max:100',
+            'customer_phone'     => 'required|string|min:9|max:15|regex:/^[0-9+\-\s()]{9,}$/',
+            'customer_email'     => 'required|email|max:100',
+            'delivery_address'   => 'required|string|min:10|max:500',
+            'payment_method'     => 'required|in:cod,bank_transfer,ewallet,qris',
+            'notes'              => 'nullable|string|max:1000',
+            'items'              => 'required|array|min:1',
             'items.*.product_id' => 'required|integer|exists:products,id',
             'items.*.quantity'   => 'required|numeric|min:1|max:999',
             'items.*.variant'    => 'nullable|string|max:100',
         ];
 
-        // Payment proof required for all methods except COD (max 2MB = 2048KB)
         if ($request->payment_method !== 'cod') {
             $rules['payment_proof'] = 'required|image|mimes:jpeg,jpg,png|max:2048';
         } else {
@@ -145,44 +141,35 @@ class OrderController extends Controller
         }
 
         $messages = [
-            'customer_name.required' => 'Nama pelanggan wajib diisi.',
-            'customer_name.min' => 'Nama minimal 3 karakter.',
-            'customer_name.max' => 'Nama maksimal 100 karakter.',
-            
-            'customer_phone.required' => 'Nomor WhatsApp wajib diisi.',
-            'customer_phone.min' => 'Nomor WhatsApp minimal 9 karakter.',
-            'customer_phone.max' => 'Nomor WhatsApp maksimal 15 karakter.',
-            'customer_phone.regex' => 'Format nomor WhatsApp tidak valid. Gunakan format: 081234567, +628123456, atau (62)8123456.',
-            
-            'customer_email.required' => 'Email wajib diisi.',
-            'customer_email.email' => 'Format email tidak valid.',
-            'customer_email.max' => 'Email terlalu panjang.',
-            
-            'delivery_address.required' => 'Alamat pengiriman wajib diisi.',
-            'delivery_address.min' => 'Alamat minimal 10 karakter.',
-            'delivery_address.max' => 'Alamat maksimal 500 karakter.',
-            
-            'payment_method.required' => 'Metode pembayaran wajib dipilih.',
-            'payment_method.in' => 'Metode pembayaran tidak valid.',
-            
-            'notes.max' => 'Catatan maksimal 1000 karakter.',
-            
-            'items.required' => 'Minimal 1 produk harus dipilih.',
-            'items.min' => 'Minimal 1 produk harus dipilih.',
-            
-            'items.*.product_id.required' => 'ID produk wajib ada.',
-            'items.*.product_id.exists' => 'Produk tidak ditemukan.',
+            'customer_name.required'     => 'Nama pelanggan wajib diisi.',
+            'customer_name.min'          => 'Nama minimal 3 karakter.',
+            'customer_name.max'          => 'Nama maksimal 100 karakter.',
+            'customer_phone.required'    => 'Nomor WhatsApp wajib diisi.',
+            'customer_phone.min'         => 'Nomor WhatsApp minimal 9 karakter.',
+            'customer_phone.max'         => 'Nomor WhatsApp maksimal 15 karakter.',
+            'customer_phone.regex'       => 'Format nomor WhatsApp tidak valid.',
+            'customer_email.required'    => 'Email wajib diisi.',
+            'customer_email.email'       => 'Format email tidak valid.',
+            'customer_email.max'         => 'Email terlalu panjang.',
+            'delivery_address.required'  => 'Alamat pengiriman wajib diisi.',
+            'delivery_address.min'       => 'Alamat minimal 10 karakter.',
+            'delivery_address.max'       => 'Alamat maksimal 500 karakter.',
+            'payment_method.required'    => 'Metode pembayaran wajib dipilih.',
+            'payment_method.in'          => 'Metode pembayaran tidak valid.',
+            'notes.max'                  => 'Catatan maksimal 1000 karakter.',
+            'items.required'             => 'Minimal 1 produk harus dipilih.',
+            'items.min'                  => 'Minimal 1 produk harus dipilih.',
+            'items.*.product_id.required'=> 'ID produk wajib ada.',
+            'items.*.product_id.exists'  => 'Produk tidak ditemukan.',
             'items.*.product_id.integer' => 'ID produk harus berupa angka.',
-            
-            'items.*.quantity.required' => 'Jumlah produk wajib diisi.',
-            'items.*.quantity.numeric' => 'Jumlah harus berupa angka.',
-            'items.*.quantity.min' => 'Jumlah minimal 1.',
-            'items.*.quantity.max' => 'Jumlah maksimal 999.',
-            
-            'payment_proof.required' => 'Bukti pembayaran wajib diunggah.',
-            'payment_proof.image' => 'File harus berupa gambar.',
-            'payment_proof.mimes' => 'Format gambar harus JPEG, JPG, atau PNG.',
-            'payment_proof.max' => 'Ukuran gambar maksimal 2MB.',
+            'items.*.quantity.required'  => 'Jumlah produk wajib diisi.',
+            'items.*.quantity.numeric'   => 'Jumlah harus berupa angka.',
+            'items.*.quantity.min'       => 'Jumlah minimal 1.',
+            'items.*.quantity.max'       => 'Jumlah maksimal 999.',
+            'payment_proof.required'     => 'Bukti pembayaran wajib diunggah.',
+            'payment_proof.image'        => 'File harus berupa gambar.',
+            'payment_proof.mimes'        => 'Format gambar harus JPEG, JPG, atau PNG.',
+            'payment_proof.max'          => 'Ukuran gambar maksimal 2MB.',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -199,32 +186,34 @@ class OrderController extends Controller
                 : null;
 
             $order = Order::create([
-                'user_id'          => $user->id,
-                'product_id'       => $primaryProductId,
-                'reference'        => $this->generateReference(),
-                'product_name'     => $summaryTitle,
-                'quantity'         => $totalQuantity,
-                'price_per_unit'   => $primaryUnitPrice,
-                'total_price'      => $totalPrice,
-                'items'            => $normalizedItems,
-                'payment_method'   => $request->payment_method,
+                'user_id'            => $user->id,
+                'product_id'         => $primaryProductId,
+                'reference'          => $this->generateReference(),
+                'product_name'       => $summaryTitle,
+                'quantity'           => $totalQuantity,
+                'price_per_unit'     => $primaryUnitPrice,
+                'total_price'        => $totalPrice,
+                'items'              => $normalizedItems,
+                'payment_method'     => $request->payment_method,
                 'payment_proof_path' => $paymentProofPath,
-                'status'           => Order::STATUS_PENDING,
-                'sync_status'      => Order::SYNC_PENDING,
-                'customer_name'    => $request->customer_name,
-                'customer_phone'   => $request->customer_phone,
-                'customer_email'   => $request->customer_email,
-                'delivery_address' => $request->delivery_address,
-                'notes'            => $request->notes,
-                'order_time'       => now('Asia/Jakarta'),
+                'status'             => Order::STATUS_PENDING,
+                'sync_status'        => Order::SYNC_PENDING,
+                'customer_name'      => $request->customer_name,
+                'customer_phone'     => $request->customer_phone,
+                'customer_email'     => $request->customer_email,
+                'delivery_address'   => $request->delivery_address,
+                'notes'              => $request->notes,
+                'order_time'         => now('Asia/Jakarta'),
             ]);
+
+            // ✅ FIX: Sync email customer ke tabel users jika belum ada
+            $this->syncCustomerEmail($user, $request->customer_email);
 
             // 🔥 Broadcast realtime order notification to admin
             broadcast(new OrderCreated($order))->toOthers();
 
             $workflow->handleCreated($order->fresh());
 
-            // ── Kirim email notifikasi ──────────────────────────────────────
             $this->sendOrderEmails($order);
 
             if ($request->expectsJson()) {
@@ -240,6 +229,7 @@ class OrderController extends Controller
             return redirect()
                 ->route('order.show', $order)
                 ->with('success', 'Pesanan berhasil dibuat.');
+
         } catch (\Throwable $exception) {
             Log::error('Order creation failed', [
                 'message' => $exception->getMessage(),
@@ -250,12 +240,38 @@ class OrderController extends Controller
     }
 
     /**
+     * ✅ FIX: Sync email dari form checkout ke data user.
+     * Jika user belum punya email → langsung isi.
+     * Jika sudah punya email berbeda → tetap update ke yang terbaru.
+     */
+    protected function syncCustomerEmail(User $user, string $email): void
+    {
+        if (empty($email)) {
+            return;
+        }
+
+        if ($user->email !== $email) {
+            try {
+                $user->update(['email' => $email]);
+                Log::info('Customer email synced', [
+                    'user_id'   => $user->id,
+                    'old_email' => $user->email,
+                    'new_email' => $email,
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('Failed to sync customer email', [
+                    'user_id' => $user->id,
+                    'error'   => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    /**
      * Kirim email konfirmasi ke customer dan notifikasi ke admin.
-     * Dibungkus try/catch agar kegagalan email tidak menghentikan proses pesanan.
      */
     protected function sendOrderEmails(Order $order): void
     {
-        // Email ke customer
         try {
             Mail::to($order->customer_email)
                 ->send(new OrderConfirmationCustomer($order));
@@ -267,7 +283,6 @@ class OrderController extends Controller
             ]);
         }
 
-        // Email ke admin
         try {
             $adminEmail = config('mail.admin_email', env('ADMIN_EMAIL'));
 
@@ -354,8 +369,8 @@ class OrderController extends Controller
             ? "https://wa.me/{$storePhone}?text=" . urlencode($whatsappMessage)
             : null;
 
-        $adminNum    = '6285189014426';
-        $adminWaUrl  = "https://wa.me/{$adminNum}?text=" . urlencode($whatsappMessage);
+        $adminNum   = '6285189014426';
+        $adminWaUrl = "https://wa.me/{$adminNum}?text=" . urlencode($whatsappMessage);
 
         return view('order.show', [
             'order'           => $order,
@@ -415,9 +430,6 @@ class OrderController extends Controller
         return redirect()->route('orders.my')->with('success', 'Pesanan dihapus dari riwayat Anda.');
     }
 
-    /**
-     * Retry syncing a failed order to Google Sheets.
-     */
     public function retrySyncOrder(Order $order, OrderWorkflowService $workflow)
     {
         $user = $this->requireCustomer();
@@ -552,7 +564,6 @@ class OrderController extends Controller
     protected function validationErrorResponse(Request $request, array $errors)
     {
         if ($request->expectsJson()) {
-            // Extract the first error message for better UX
             $firstErrorMessage = 'Validasi gagal.';
             foreach ($errors as $field => $messages) {
                 if (is_array($messages) && !empty($messages)) {
@@ -560,7 +571,7 @@ class OrderController extends Controller
                     break;
                 }
             }
-            
+
             return response()->json([
                 'message' => $firstErrorMessage,
                 'errors'  => $errors,
@@ -581,10 +592,6 @@ class OrderController extends Controller
         return redirect($redirect)->with('error', $message);
     }
 
-    /**
-     * Get latest order data for realtime notifications.
-     * API endpoint for polling new orders without page refresh.
-     */
     public function getLatestOrders()
     {
         $user    = $this->currentUser();
