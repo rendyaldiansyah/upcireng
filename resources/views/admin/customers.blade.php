@@ -31,7 +31,6 @@
             --shadow-md: 0 6px 18px rgba(15,23,42,0.06), 0 2px 4px rgba(15,23,42,0.03);
         }
 
-        /* ── Stat Cards ── */
         .stat-card {
             background: var(--surface);
             border-radius: var(--r-card);
@@ -58,13 +57,12 @@
             margin-top: 0.5rem;
         }
 
-        /* ── Search Form ── */
         .search-wrapper {
             background: var(--surface);
             border-radius: 14px;
             border: 1px solid var(--border);
             box-shadow: var(--shadow-sm);
-            transition: box-shadow 0.2s;
+            transition: box-shadow 0.2s, border-color 0.2s;
         }
         .search-wrapper:focus-within {
             box-shadow: 0 0 0 3px rgba(14,165,233,0.15);
@@ -82,7 +80,6 @@
         }
         .search-input::placeholder { color: var(--text-3); font-weight: 400; }
 
-        /* ── Table ── */
         .table-container {
             background: var(--surface);
             border-radius: var(--r-card);
@@ -113,13 +110,13 @@
         }
         .table-custom tr:last-child td { border-bottom: none; }
         .table-custom tbody tr {
-            transition: background 0.15s;
+            transition: background 0.15s, transform 0.15s;
         }
         .table-custom tbody tr:hover {
             background: #F8FAFC;
+            transform: scale(1.002);
         }
 
-        /* Badge */
         .badge-order {
             display: inline-flex;
             align-items: center;
@@ -131,9 +128,9 @@
             padding: 0.3rem 0.8rem;
             border-radius: 30px;
             border: 1px solid rgba(14,165,233,0.2);
+            box-shadow: inset 0 0 0 1px rgba(14,165,233,0.08);
         }
 
-        /* Action Buttons */
         .action-btn {
             display: inline-flex;
             align-items: center;
@@ -154,6 +151,9 @@
             border-color: var(--border-2);
             color: var(--text-1);
         }
+        .action-btn:active {
+            transform: scale(0.96);
+        }
         .action-btn-danger:hover {
             background: #FEF2F2;
             border-color: #FECACA;
@@ -165,7 +165,6 @@
             color: #B45309;
         }
 
-        /* Modal */
         .modal-overlay {
             background: rgba(15,23,42,0.5);
             backdrop-filter: blur(4px);
@@ -192,10 +191,10 @@
             background: white;
         }
 
-        /* Pagination */
         .pagination {
             display: flex;
             gap: 0.3rem;
+            flex-wrap: wrap;
         }
         .page-item .page-link {
             display: flex;
@@ -221,7 +220,6 @@
             border-color: var(--border-2);
         }
 
-        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
@@ -230,7 +228,6 @@
             animation: fadeIn 0.2s ease-out;
         }
 
-        /* Button Umum */
         .btn-primary {
             background: var(--accent);
             border: none;
@@ -247,6 +244,13 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 16px rgba(14,165,233,0.25);
         }
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         .btn-secondary {
             background: white;
             border: 1px solid var(--border);
@@ -261,6 +265,18 @@
             background: #F8FAFC;
             border-color: var(--border-2);
         }
+
+        .soft-scroll::-webkit-scrollbar {
+            width: 10px;
+        }
+        .soft-scroll::-webkit-scrollbar-thumb {
+            background: #D9E2EC;
+            border-radius: 999px;
+            border: 2px solid #fff;
+        }
+        .soft-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
     </style>
 @endpush
 
@@ -270,14 +286,16 @@
 
     <main class="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
 
-        {{-- ── Breadcrumb ── --}}
+        {{-- Breadcrumb --}}
         <nav class="mb-6 flex items-center gap-2 text-xs font-semibold text-slate-400">
             <a href="{{ route('admin.dashboard') }}" class="hover:text-slate-700 transition">Dashboard</a>
-            <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
             <span class="text-slate-700">Customer</span>
         </nav>
 
-        {{-- ── Page Header ── --}}
+        {{-- Header --}}
         <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h1 class="text-3xl font-black text-slate-900 tracking-tight">
@@ -287,15 +305,16 @@
             </div>
         </div>
 
-        {{-- ── Stats ── --}}
+        {{-- Stats --}}
         <div class="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
             @php
                 $statCards = [
-                    ['label' => 'Total Customer', 'value' => $stats['total'], 'color' => 'text-sky-600', 'icon' => '👥'],
-                    ['label' => 'Daftar Hari Ini', 'value' => $stats['today'], 'color' => 'text-emerald-600', 'icon' => '📅'],
-                    ['label' => 'Minggu Ini',      'value' => $stats['week'],  'color' => 'text-violet-600', 'icon' => '📈'],
+                    ['label' => 'Total Customer', 'value' => $stats['total'] ?? 0, 'color' => 'text-sky-600', 'icon' => '👥'],
+                    ['label' => 'Daftar Hari Ini', 'value' => $stats['today'] ?? 0, 'color' => 'text-emerald-600', 'icon' => '📅'],
+                    ['label' => 'Minggu Ini',      'value' => $stats['week'] ?? 0,  'color' => 'text-violet-600', 'icon' => '📈'],
                 ];
             @endphp
+
             @foreach($statCards as $sc)
                 <div class="stat-card">
                     <div class="flex items-center justify-between">
@@ -307,21 +326,26 @@
             @endforeach
         </div>
 
-        {{-- ── Alerts ── --}}
+        {{-- Alerts --}}
         @if(session('success'))
             <div class="mb-6 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3.5 text-sm font-semibold text-emerald-700">
-                <svg class="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                <svg class="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
                 {{ session('success') }}
             </div>
         @endif
+
         @if(session('error'))
             <div class="mb-6 flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 px-5 py-3.5 text-sm font-semibold text-rose-700">
-                <svg class="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+                <svg class="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
                 {{ session('error') }}
             </div>
         @endif
 
-        {{-- ── Search ── --}}
+        {{-- Search --}}
         <form method="GET" action="{{ route('admin.customers') }}" class="mb-6">
             <div class="flex flex-col sm:flex-row gap-3">
                 <div class="search-wrapper flex-1">
@@ -331,15 +355,21 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                         </span>
-                        <input type="text" name="search" value="{{ request('search') }}"
-                               placeholder="Cari nama, email, atau nomor HP..."
-                               class="search-input">
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ request('search') }}"
+                            placeholder="Cari nama, email, atau nomor HP..."
+                            class="search-input"
+                        >
                     </div>
                 </div>
+
                 <div class="flex gap-2">
                     <button type="submit" class="btn-primary px-6">
                         Cari
                     </button>
+
                     @if(request('search'))
                         <a href="{{ route('admin.customers') }}" class="btn-secondary px-5">
                             Reset
@@ -349,7 +379,7 @@
             </div>
         </form>
 
-        {{-- ── Table ── --}}
+        {{-- Table --}}
         <div class="table-container">
             <div class="overflow-x-auto">
                 <table class="table-custom">
@@ -366,7 +396,6 @@
                     <tbody>
                         @forelse($customers as $customer)
                             <tr>
-                                {{-- Avatar + Nama --}}
                                 <td>
                                     <div class="flex items-center gap-3">
                                         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-100 to-sky-200 text-sm font-black text-sky-700 shadow-sm">
@@ -378,7 +407,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                {{-- Email --}}
+
                                 <td>
                                     @if($customer->email)
                                         <p class="font-medium text-slate-700">{{ $customer->email }}</p>
@@ -388,47 +417,51 @@
                                         </span>
                                     @endif
                                 </td>
-                                {{-- Phone --}}
+
                                 <td>
                                     <p class="font-medium text-slate-700">{{ $customer->phone ?? '-' }}</p>
                                 </td>
-                                {{-- Order Count --}}
+
                                 <td class="text-center">
                                     <span class="badge-order">
-                                        {{ $customer->orders_count }}
+                                        {{ $customer->orders_count ?? 0 }}
                                     </span>
                                 </td>
-                                {{-- Tanggal Daftar --}}
+
                                 <td>
                                     <p class="text-sm font-semibold text-slate-700">
-                                        {{ $customer->created_at->translatedFormat('d M Y') }}
+                                        {{ optional($customer->created_at)->translatedFormat('d M Y') }}
                                     </p>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">{{ $customer->created_at->diffForHumans() }}</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">
+                                        {{ optional($customer->created_at)->diffForHumans() }}
+                                    </p>
                                 </td>
-                                {{-- Actions --}}
+
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
-                                        {{-- Detail --}}
                                         <a href="{{ route('admin.customer.detail', $customer) }}"
                                            class="action-btn">
                                             Detail
                                         </a>
-                                        {{-- Edit (modal trigger) --}}
-                                        <button type="button"
-                                                data-edit-customer="{{ $customer->id }}"
-                                                data-name="{{ $customer->name }}"
-                                                data-email="{{ $customer->email }}"
-                                                data-phone="{{ $customer->phone }}"
-                                                class="action-btn action-btn-edit">
+
+                                        <button
+                                            type="button"
+                                            data-edit-customer="1"
+                                            data-customer-id="{{ $customer->id }}"
+                                            data-update-url="{{ route('admin.customer.update', $customer) }}"
+                                            data-name="{{ $customer->name }}"
+                                            data-email="{{ $customer->email ?? '' }}"
+                                            data-phone="{{ $customer->phone ?? '' }}"
+                                            class="action-btn action-btn-edit">
                                             Edit
                                         </button>
-                                        {{-- Delete --}}
-                                        <form method="POST" action="{{ route('admin.customer.delete', $customer) }}"
+
+                                        <form method="POST"
+                                              action="{{ route('admin.customer.delete', $customer) }}"
                                               onsubmit="return confirm('Hapus customer {{ addslashes($customer->name) }}? Tindakan ini tidak dapat dibatalkan.')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit"
-                                                    class="action-btn action-btn-danger">
+                                            <button type="submit" class="action-btn action-btn-danger">
                                                 Hapus
                                             </button>
                                         </form>
@@ -462,7 +495,7 @@
 
             {{-- Pagination --}}
             @if($customers->hasPages())
-                <div class="border-t border-slate-100 px-6 py-4 flex items-center justify-between">
+                <div class="border-t border-slate-100 px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
                     <div class="text-xs text-slate-400">
                         Menampilkan {{ $customers->firstItem() }}–{{ $customers->lastItem() }} dari {{ $customers->total() }} customer
                     </div>
@@ -476,13 +509,11 @@
                 </div>
             @endif
         </div>
-
     </main>
 </div>
 
-{{-- ═══════════════════════ EDIT MODAL ═══════════════════════ --}}
+{{-- Edit Modal --}}
 <div id="editModal" class="fixed inset-0 z-50 hidden items-center justify-center px-4 modal-overlay">
-    {{-- Backdrop --}}
     <div id="editBackdrop" class="absolute inset-0"></div>
 
     <div class="relative w-full max-w-md modal-card p-6 sm:p-7 modal-enter">
@@ -490,7 +521,9 @@
             <h2 class="text-xl font-black text-slate-900">Edit Data Customer</h2>
             <button type="button" id="closeEditModal"
                     class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
             </button>
         </div>
 
@@ -499,34 +532,30 @@
             @method('PUT')
 
             <div>
-                <label class="mb-1.5 block text-sm font-bold text-slate-700">Nama <span class="text-rose-500">*</span></label>
-                <input type="text" name="name" id="editName"
-                       class="modal-input"
-                       required>
+                <label class="mb-1.5 block text-sm font-bold text-slate-700">
+                    Nama <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" name="name" id="editName" class="modal-input" required>
             </div>
 
             <div>
                 <label class="mb-1.5 block text-sm font-bold text-slate-700">Email</label>
-                <input type="email" name="email" id="editEmail"
-                       placeholder="Kosongkan jika tidak ada"
-                       class="modal-input">
+                <input type="email" name="email" id="editEmail" placeholder="Kosongkan jika tidak ada" class="modal-input">
                 <p class="mt-1.5 text-xs text-slate-400">Opsional — customer mungkin tidak memiliki email.</p>
             </div>
 
             <div>
-                <label class="mb-1.5 block text-sm font-bold text-slate-700">Nomor HP <span class="text-rose-500">*</span></label>
-                <input type="text" name="phone" id="editPhone"
-                       class="modal-input"
-                       required>
+                <label class="mb-1.5 block text-sm font-bold text-slate-700">
+                    Nomor HP <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" name="phone" id="editPhone" class="modal-input" required>
             </div>
 
             <div class="flex gap-3 pt-3">
-                <button type="button" id="cancelEditModal"
-                        class="flex-1 btn-secondary">
+                <button type="button" id="cancelEditModal" class="flex-1 btn-secondary">
                     Batal
                 </button>
-                <button type="submit"
-                        class="flex-1 btn-primary">
+                <button type="submit" class="flex-1 btn-primary" id="submitEditBtn">
                     Simpan Perubahan
                 </button>
             </div>
@@ -543,34 +572,50 @@
     const closeEdit    = document.getElementById('closeEditModal');
     const cancelEdit   = document.getElementById('cancelEditModal');
     const editBackdrop = document.getElementById('editBackdrop');
+    const submitEdit   = document.getElementById('submitEditBtn');
 
-    document.querySelectorAll('[data-edit-customer]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const id    = this.dataset.editCustomer;
-            const name  = this.dataset.name;
-            const email = this.dataset.email;
-            const phone = this.dataset.phone;
-
-            editForm.action = `/adminup/customers/${id}`;
-            editName.value  = name || '';
-            editEmail.value = email !== 'null' ? (email || '') : '';
-            editPhone.value = phone || '';
-
-            editModal.classList.remove('hidden');
-            editModal.classList.add('flex');
-        });
-    });
+    function openModal() {
+        editModal.classList.remove('hidden');
+        editModal.classList.add('flex');
+    }
 
     function closeModal() {
         editModal.classList.add('hidden');
         editModal.classList.remove('flex');
+        editForm.reset();
+        submitEdit.disabled = false;
+        submitEdit.innerText = 'Simpan Perubahan';
     }
+
+    document.querySelectorAll('[data-edit-customer="1"]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const updateUrl = this.dataset.updateUrl;
+            const name      = this.dataset.name || '';
+            const email     = this.dataset.email || '';
+            const phone     = this.dataset.phone || '';
+
+            editForm.action = updateUrl;
+            editName.value   = name;
+            editEmail.value  = (email && email !== 'null') ? email : '';
+            editPhone.value  = phone;
+
+            openModal();
+        });
+    });
 
     closeEdit.addEventListener('click', closeModal);
     cancelEdit.addEventListener('click', closeModal);
     editBackdrop.addEventListener('click', closeModal);
+
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeModal();
+        if (e.key === 'Escape' && !editModal.classList.contains('hidden')) {
+            closeModal();
+        }
+    });
+
+    editForm.addEventListener('submit', function () {
+        submitEdit.disabled = true;
+        submitEdit.innerText = 'Menyimpan...';
     });
 </script>
 @endsection
