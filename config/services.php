@@ -36,7 +36,7 @@ return [
     ],
 
     'google_sheets' => [
-        'url' => env('https://script.google.com/macros/s/AKfycbzm_rRDipRiXWFgpkEIN022PrJEew-lYHtSPa8jH1zwAr8lyaIMRqJpF-E_zQKCCK2ysQ/exec'),
+        'url' => env('https://script.google.com/macros/s/AKfycbwjoLnd4tEZCeN4Wg1SDg7B9IG026UM7NtZmS1QGoJp0PDKtoBTD_NS6ZhHMvuwlF3E/exec'),
         'api_key' => env('upcireng_2018'),
     ],
 
