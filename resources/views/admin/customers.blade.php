@@ -64,7 +64,6 @@
             border-radius: 14px;
             border: 1px solid var(--border);
             box-shadow: var(--shadow-sm);
-            padding: 0.2rem;
             transition: box-shadow 0.2s;
         }
         .search-wrapper:focus-within {
@@ -74,7 +73,7 @@
         .search-input {
             background: transparent;
             border: none;
-            padding: 0.8rem 1rem 0.8rem 2.8rem;
+            padding: 0.9rem 1rem 0.9rem 2.8rem;
             font-size: 0.9rem;
             font-weight: 500;
             color: var(--text-1);
@@ -98,7 +97,7 @@
         }
         .table-custom th {
             text-align: left;
-            padding: 1rem 1.5rem;
+            padding: 1.1rem 1.5rem;
             background: #F8FAFC;
             font-size: 0.7rem;
             font-weight: 800;
@@ -139,7 +138,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0.4rem 1rem;
+            padding: 0.45rem 1.1rem;
             border-radius: 10px;
             font-size: 0.75rem;
             font-weight: 700;
@@ -180,15 +179,16 @@
         .modal-input {
             background: #F8FAFC;
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 0.75rem 1rem;
+            border-radius: 14px;
+            padding: 0.85rem 1.2rem;
             font-weight: 500;
             transition: all 0.15s;
+            width: 100%;
+            outline: none;
         }
         .modal-input:focus {
             border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(14,165,233,0.12);
-            outline: none;
             background: white;
         }
 
@@ -229,6 +229,38 @@
         .modal-enter {
             animation: fadeIn 0.2s ease-out;
         }
+
+        /* Button Umum */
+        .btn-primary {
+            background: var(--accent);
+            border: none;
+            border-radius: 14px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 4px 8px rgba(14,165,233,0.2);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            background: #0284C7;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(14,165,233,0.25);
+        }
+        .btn-secondary {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            color: var(--text-2);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-secondary:hover {
+            background: #F8FAFC;
+            border-color: var(--border-2);
+        }
     </style>
 @endpush
 
@@ -259,9 +291,9 @@
         <div class="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
             @php
                 $statCards = [
-                    ['label' => 'Total Customer', 'value' => $stats['total'], 'color' => 'text-sky-600', 'bg' => 'bg-sky-50', 'icon' => '👥'],
-                    ['label' => 'Daftar Hari Ini', 'value' => $stats['today'], 'color' => 'text-emerald-600', 'bg' => 'bg-emerald-50', 'icon' => '📅'],
-                    ['label' => 'Minggu Ini',      'value' => $stats['week'],  'color' => 'text-violet-600', 'bg' => 'bg-violet-50', 'icon' => '📈'],
+                    ['label' => 'Total Customer', 'value' => $stats['total'], 'color' => 'text-sky-600', 'icon' => '👥'],
+                    ['label' => 'Daftar Hari Ini', 'value' => $stats['today'], 'color' => 'text-emerald-600', 'icon' => '📅'],
+                    ['label' => 'Minggu Ini',      'value' => $stats['week'],  'color' => 'text-violet-600', 'icon' => '📈'],
                 ];
             @endphp
             @foreach($statCards as $sc)
@@ -305,13 +337,11 @@
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <button type="submit"
-                            class="rounded-xl bg-white border border-slate-200 px-6 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:border-slate-300">
+                    <button type="submit" class="btn-primary px-6">
                         Cari
                     </button>
                     @if(request('search'))
-                        <a href="{{ route('admin.customers') }}"
-                           class="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-700">
+                        <a href="{{ route('admin.customers') }}" class="btn-secondary px-5">
                             Reset
                         </a>
                     @endif
@@ -471,7 +501,7 @@
             <div>
                 <label class="mb-1.5 block text-sm font-bold text-slate-700">Nama <span class="text-rose-500">*</span></label>
                 <input type="text" name="name" id="editName"
-                       class="modal-input w-full"
+                       class="modal-input"
                        required>
             </div>
 
@@ -479,24 +509,24 @@
                 <label class="mb-1.5 block text-sm font-bold text-slate-700">Email</label>
                 <input type="email" name="email" id="editEmail"
                        placeholder="Kosongkan jika tidak ada"
-                       class="modal-input w-full">
+                       class="modal-input">
                 <p class="mt-1.5 text-xs text-slate-400">Opsional — customer mungkin tidak memiliki email.</p>
             </div>
 
             <div>
                 <label class="mb-1.5 block text-sm font-bold text-slate-700">Nomor HP <span class="text-rose-500">*</span></label>
                 <input type="text" name="phone" id="editPhone"
-                       class="modal-input w-full"
+                       class="modal-input"
                        required>
             </div>
 
             <div class="flex gap-3 pt-3">
                 <button type="button" id="cancelEditModal"
-                        class="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+                        class="flex-1 btn-secondary">
                     Batal
                 </button>
                 <button type="submit"
-                        class="flex-1 rounded-xl bg-sky-500 py-2.5 text-sm font-bold text-white transition hover:bg-sky-600 shadow-sm">
+                        class="flex-1 btn-primary">
                     Simpan Perubahan
                 </button>
             </div>
