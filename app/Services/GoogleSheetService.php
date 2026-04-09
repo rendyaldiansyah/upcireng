@@ -12,14 +12,10 @@ class GoogleSheetService
 
     public function __construct()
     {
-        // ★ FIXED: key harus cocok dengan config/services.php → google_sheets.webhook_url
-        $this->webhookUrl = config('services.google_sheets.webhook_url') ?? '';
-        $this->apiKey     = config('services.google_sheets.api_key') ?? '';
+        $this->webhookUrl = config('services.google_sheets.webhook_url', '');
+        $this->apiKey     = config('services.google_sheets.api_key', '');
     }
 
-    /**
-     * Kirim bulk sync (semua order + analytics) ke Apps Script.
-     */
     public function bulkSync(array $rows, array $analytics): array
     {
         return $this->post([
@@ -29,51 +25,43 @@ class GoogleSheetService
         ]);
     }
 
-    /**
-     * Kirim event order.created.
-     */
     public function orderCreated(array $order): array
     {
         return $this->post(['event' => 'order.created', 'order' => $order]);
     }
 
-    /**
-     * Kirim event order.updated.
-     */
     public function orderUpdated(array $order, array $meta = []): array
     {
         return $this->post(['event' => 'order.updated', 'order' => $order, 'meta' => $meta]);
     }
 
-    /**
-     * Kirim event order.deleted.
-     */
     public function orderDeleted(array $order): array
     {
         return $this->post(['event' => 'order.deleted', 'order' => $order]);
     }
 
-    // ── Internal ─────────────────────────────────────────────────────────────
+    // ── Internal ──────────────────────────────────────────────────────────────
 
     private function post(array $payload): array
     {
         if (empty($this->webhookUrl)) {
-            Log::warning('GoogleSheetService: GOOGLE_SHEETS_WEBHOOK_URL belum diisi di .env');
-            return ['success' => false, 'message' => 'Webhook URL belum dikonfigurasi di .env'];
+            Log::warning('[GoogleSheetService] GOOGLE_SHEETS_WEBHOOK_URL belum diisi di .env');
+            return ['success' => false, 'message' => 'Webhook URL tidak dikonfigurasi'];
         }
 
         try {
             $response = Http::timeout(30)
-                ->asJson()  // ★ FIX: kirim sebagai JSON bukan form-encoded
+                ->asJson()
                 ->post($this->webhookUrl, array_merge($payload, [
                     'api_key' => $this->apiKey,
                 ]));
 
             $body = $response->json() ?? [];
 
-            if (!$response->successful()) {
-                Log::error('GoogleSheetService HTTP error', [
+            if (! $response->successful()) {
+                Log::error('[GoogleSheetService] HTTP error', [
                     'status' => $response->status(),
+                    'event'  => $payload['event'] ?? null,
                     'body'   => $body,
                 ]);
                 return ['success' => false, 'message' => 'HTTP ' . $response->status()];
@@ -82,7 +70,10 @@ class GoogleSheetService
             return $body;
 
         } catch (\Throwable $e) {
-            Log::error('GoogleSheetService exception', ['message' => $e->getMessage()]);
+            Log::error('[GoogleSheetService] Exception', [
+                'message' => $e->getMessage(),
+                'event'   => $payload['event'] ?? null,
+            ]);
             return ['success' => false, 'message' => $e->getMessage()];
         }
     }

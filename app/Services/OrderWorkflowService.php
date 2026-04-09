@@ -2,76 +2,107 @@
 
 namespace App\Services;
 
-use App\Mail\AdminOrderNotificationMail;
-use App\Mail\OrderCancelledMail;
-use App\Mail\OrderConfirmationMail;
+use App\Jobs\SyncOrderToSheet;
 use App\Models\Order;
+use App\Traits\BuildsOrderPayload;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class OrderWorkflowService
 {
+    use BuildsOrderPayload;
+
+    // =========================================================================
+    // PUBLIC HOOKS — dipanggil dari Controller
+    // =========================================================================
+
+    /**
+     * Dipanggil di OrderController::store() setelah Order::create()
+     */
     public function handleCreated(Order $order): void
     {
-        $this->sendCustomerConfirmation($order);
-        $this->sendAdminNotification($order);
-        GoogleSheetsService::syncCreated($order);
-        NotificationService::sendNewOrderAlert($order);
+        $this->updateSyncStatus($order, Order::SYNC_PENDING);
+
+        // ★ Dispatch real-time ke Google Sheets (non-blocking)
+        $this->dispatchSheetSync('order.created', $order);
+
+        Log::info('[OrderWorkflow] Order created', [
+            'order_id'  => $order->id,
+            'reference' => $order->reference,
+        ]);
     }
 
-    public function handleStatusChange(Order $order, ?string $previousStatus = null): void
+    /**
+     * Dipanggil setiap kali status berubah:
+     * — AdminController::updateOrderStatus()
+     * — OrderController::cancel()
+     * — OrderController::retrySyncOrder()
+     */
+    public function handleStatusChange(Order $order, string $previousStatus): void
     {
-        GoogleSheetsService::syncStatusUpdate($order, $previousStatus);
-
-        if ($previousStatus !== Order::STATUS_CANCELLED && $order->status === Order::STATUS_CANCELLED) {
-            $this->sendCustomerCancellation($order);
-            NotificationService::sendCancellationAlert($order);
+        if ($order->status === $previousStatus) {
+            return; // Tidak ada perubahan nyata, skip
         }
+
+        // ★ Dispatch real-time ke Google Sheets
+        $this->dispatchSheetSync('order.updated', $order);
+
+        Log::info('[OrderWorkflow] Status changed', [
+            'order_id' => $order->id,
+            'from'     => $previousStatus,
+            'to'       => $order->status,
+        ]);
     }
 
+    /**
+     * Dipanggil di AdminController::deleteOrder() sebelum $order->delete()
+     */
     public function handleDeleted(Order $order): void
     {
-        GoogleSheetsService::syncDeleted($order);
+        // ★ Dispatch real-time ke Google Sheets — mark deleted
+        SyncOrderToSheet::dispatch('order.deleted', $this->buildDeletedPayload($order))
+            ->onQueue('sheets');
+
+        Log::info('[OrderWorkflow] Order deleted', [
+            'order_id'  => $order->id,
+            'reference' => $order->reference,
+        ]);
     }
 
-    protected function sendCustomerConfirmation(Order $order): void
+    // =========================================================================
+    // INTERNAL HELPERS
+    // =========================================================================
+
+    /**
+     * Dispatch job ke queue 'sheets'.
+     * Delay 1 detik untuk pastikan DB sudah commit sempurna.
+     */
+    private function dispatchSheetSync(string $event, Order $order): void
     {
         try {
-            Mail::to($order->customer_email)->send(new OrderConfirmationMail($order));
-        } catch (\Throwable $exception) {
-            Log::warning('Failed to send customer confirmation email', [
+            SyncOrderToSheet::dispatch($event, $this->buildOrderPayload($order))
+                ->onQueue('sheets')
+                ->delay(now()->addSecond());
+        } catch (\Throwable $e) {
+            // Jangan sampai crash workflow jika dispatch gagal
+            Log::error('[OrderWorkflow] Gagal dispatch sync job', [
+                'event'    => $event,
                 'order_id' => $order->id,
-                'message' => $exception->getMessage(),
+                'error'    => $e->getMessage(),
             ]);
         }
     }
 
-    protected function sendCustomerCancellation(Order $order): void
+    /**
+     * Update sync_status di DB jika kolom tersedia.
+     */
+    private function updateSyncStatus(Order $order, string $status): void
     {
         try {
-            Mail::to($order->customer_email)->send(new OrderCancelledMail($order));
-        } catch (\Throwable $exception) {
-            Log::warning('Failed to send customer cancellation email', [
+            $order->updateQuietly(['sync_status' => $status]);
+        } catch (\Throwable $e) {
+            Log::warning('[OrderWorkflow] Gagal update sync_status', [
                 'order_id' => $order->id,
-                'message' => $exception->getMessage(),
-            ]);
-        }
-    }
-
-    protected function sendAdminNotification(Order $order): void
-    {
-        $adminEmail = config('services.notifications.admin_email');
-
-        if (!$adminEmail) {
-            return;
-        }
-
-        try {
-            Mail::to($adminEmail)->send(new AdminOrderNotificationMail($order));
-        } catch (\Throwable $exception) {
-            Log::warning('Failed to send admin order email', [
-                'order_id' => $order->id,
-                'message' => $exception->getMessage(),
+                'error'    => $e->getMessage(),
             ]);
         }
     }
