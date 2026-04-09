@@ -1,4 +1,5 @@
 @extends('layout.app')
+@php use App\Models\Order; @endphp
 
 @section('title', 'Analytics - UP Cireng')
 @section('hide_nav', '1')
@@ -191,15 +192,23 @@
                     <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Tren Revenue</h2>
                     <div class="flex gap-3 text-xs text-slate-500">
                         <span class="flex items-center gap-1.5"><span class="inline-block w-4 h-1 rounded bg-orange-400"></span>Gross</span>
-                        <span class="flex items-center gap-1.5"><span class="inline-block w-4 h-1 rounded bg-emerald-500 opacity-70" style="background:repeating-linear-gradient(90deg,#16a34a 0 4px,transparent 4px 8px)"></span>Net</span>
+                        <span class="flex items-center gap-1.5"><span class="inline-block w-4 h-1 rounded bg-emerald-500"></span>Net</span>
                     </div>
                 </div>
+                @if($totalOrders === 0)
+                    <p class="text-sm text-slate-400 text-center py-16">Belum ada data revenue</p>
+                @else
                 <div style="position:relative;height:220px;"><canvas id="revenueChart"></canvas></div>
+                @endif
             </div>
 
             <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 sm:p-6">
                 <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Volume Pesanan</h2>
+                @if($totalOrders === 0)
+                    <p class="text-sm text-slate-400 text-center py-16">Belum ada data pesanan</p>
+                @else
                 <div style="position:relative;height:220px;"><canvas id="ordersChart"></canvas></div>
+                @endif
             </div>
         </div>
 
@@ -207,6 +216,9 @@
         <div class="mb-8 grid gap-4 lg:grid-cols-2">
             <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 sm:p-6">
                 <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Distribusi Status Pesanan</h2>
+                @if($totalOrders === 0)
+                    <p class="text-sm text-slate-400 text-center py-16">Belum ada data pesanan</p>
+                @else
                 <div class="flex flex-col sm:flex-row gap-4 items-center">
                     <div style="position:relative;width:180px;height:180px;flex-shrink:0;"><canvas id="statusChart"></canvas></div>
                     <div class="flex flex-col gap-2 w-full">
@@ -228,6 +240,7 @@
                         @endforeach
                     </div>
                 </div>
+                @endif
             </div>
 
             <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 sm:p-6">
@@ -258,11 +271,19 @@
         <div class="mb-8 grid gap-4 lg:grid-cols-2">
             <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 sm:p-6">
                 <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Pola Hari dalam Seminggu</h2>
+                @if($totalOrders === 0)
+                    <p class="text-sm text-slate-400 text-center py-16">Belum ada data</p>
+                @else
                 <div style="position:relative;height:200px;"><canvas id="weeklyChart"></canvas></div>
+                @endif
             </div>
             <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 sm:p-6">
                 <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Jam Sibuk Pesanan</h2>
+                @if($totalOrders === 0)
+                    <p class="text-sm text-slate-400 text-center py-16">Belum ada data</p>
+                @else
                 <div style="position:relative;height:200px;"><canvas id="hourlyChart"></canvas></div>
+                @endif
             </div>
         </div>
 
@@ -303,15 +324,19 @@
                 @else
                 <div class="space-y-3">
                     @foreach($topOrders as $order)
+                    @php
+                        $statusBadgeClass = match($order->status) {
+                            Order::STATUS_COMPLETED  => 'bg-emerald-100 text-emerald-700',
+                            Order::STATUS_CANCELLED  => 'bg-red-100 text-red-700',
+                            Order::STATUS_DELIVERING => 'bg-violet-100 text-violet-700',
+                            default                  => 'bg-blue-100 text-blue-700',
+                        };
+                    @endphp
                     <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3">
                         <div class="min-w-0">
                             <p class="text-xs font-bold text-slate-800 truncate">{{ $order->customer_name ?? 'Customer' }}</p>
                             <p class="text-[11px] text-slate-400">{{ $order->reference ?? 'N/A' }} · {{ $order->created_at->translatedFormat('d M Y') }}</p>
-                            <span class="inline-block mt-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full
-                                {{ $order->status === Order::STATUS_COMPLETED ? 'bg-emerald-100 text-emerald-700' :
-                                   ($order->status === Order::STATUS_CANCELLED  ? 'bg-red-100 text-red-700'       :
-                                   ($order->status === Order::STATUS_DELIVERING ? 'bg-violet-100 text-violet-700' :
-                                   'bg-blue-100 text-blue-700')) }}">
+                            <span class="inline-block mt-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full {{ $statusBadgeClass }}">
                                 {{ $order->status_label ?? ucfirst($order->status) }}
                             </span>
                         </div>
@@ -354,6 +379,7 @@
 @push('scripts')
 <script>
 (function () {
+    @if($totalOrders > 0)
     const labels     = @json($trendLabels);
     const revenue    = @json($trendRevenue);
     const netRev     = @json($trendNetRevenue);
@@ -408,6 +434,7 @@
         data:{ labels:Array.from({length:24},(_,i)=>i.toString().padStart(2,'0')+':00'), datasets:[{ data:@json($hourlyOrders), backgroundColor:'rgba(249,115,22,0.7)', borderRadius:3, borderSkipped:false }] },
         options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ font, maxRotation:45, autoSkip:true, maxTicksLimit:8 }, grid:{ display:false } }, y:{ ticks:{ font, stepSize:1 }, grid:{ color:grid } } } }
     });
+    @endif
 
     // Kirim ke Sheet — loading state
     document.getElementById('sendSheetForm').addEventListener('submit', function () {

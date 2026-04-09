@@ -12,6 +12,7 @@ class GoogleSheetService
 
     public function __construct()
     {
+        // ★ FIXED: key harus cocok dengan config/services.php → google_sheets.webhook_url
         $this->webhookUrl = config('services.google_sheets.webhook_url', '');
         $this->apiKey     = config('services.google_sheets.api_key', '');
     }
@@ -57,7 +58,7 @@ class GoogleSheetService
     private function post(array $payload): array
     {
         if (empty($this->webhookUrl)) {
-            Log::warning('GoogleSheetService: webhook_url tidak dikonfigurasi.');
+            Log::warning('GoogleSheetService: GOOGLE_SHEETS_WEBHOOK_URL belum diisi di .env');
             return ['success' => false, 'message' => 'Webhook URL belum dikonfigurasi di .env'];
         }
 
@@ -70,7 +71,10 @@ class GoogleSheetService
             $body = $response->json() ?? [];
 
             if (!$response->successful()) {
-                Log::error('GoogleSheetService HTTP error', ['status' => $response->status(), 'body' => $body]);
+                Log::error('GoogleSheetService HTTP error', [
+                    'status' => $response->status(),
+                    'body'   => $body,
+                ]);
                 return ['success' => false, 'message' => 'HTTP ' . $response->status()];
             }
 
