@@ -399,6 +399,76 @@ class AdminController extends Controller
     }
 
     // =========================================================================
+    // CUSTOMER MANAGEMENT
+    // =========================================================================
+
+    public function customers(Request $request)
+    {
+        $query = User::where('role', 'customer')->withCount('orders');
+
+        // Search
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                  ->orWhere('email', 'like', "%$search%")
+                  ->orWhere('phone', 'like', "%$search%");
+            });
+        }
+
+        $customers = $query->latest()->paginate(20);
+
+        // Stats
+        $stats = [
+            'total' => User::where('role', 'customer')->count(),
+            'today' => User::where('role', 'customer')->whereDate('created_at', today())->count(),
+            'week'  => User::where('role', 'customer')->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+        ];
+
+        return view('admin.customers', compact('customers', 'stats'));
+    }
+
+    public function customerDetail(User $customer)
+    {
+        if ($customer->role !== 'customer') {
+            abort(404);
+        }
+
+        $orders = $customer->orders()->latest()->get();
+        $totalSpent = $customer->orders()->where('status', Order::STATUS_COMPLETED)->sum('total_price');
+        $totalOrders = $customer->orders()->count();
+
+        return view('admin.customers.detail', compact('customer', 'orders', 'totalSpent', 'totalOrders'));
+    }
+
+    public function updateCustomer(Request $request, User $customer)
+    {
+        if ($customer->role !== 'customer') {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $customer->id,
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $customer->update($validated);
+
+        return back()->with('success', 'Data pelanggan berhasil diperbarui.');
+    }
+
+    public function deleteCustomer(User $customer)
+    {
+        if ($customer->role !== 'customer') {
+            abort(404);
+        }
+
+        $customer->delete();
+
+        return redirect()->route('admin.customers')->with('success', 'Pelanggan berhasil dihapus.');
+    }
+
+    // =========================================================================
     // HELPERS
     // =========================================================================
 
