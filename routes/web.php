@@ -49,6 +49,9 @@ Route::post('/testimoni', [TestimonialController::class, 'store'])->name('testim
 Route::prefix('adminup')->middleware('admin.session')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
+    // ★ Analytics
+    Route::get('/analytics', [AdminController::class, 'analytics'])->name('admin.analytics');
+
     // ★ Realtime API untuk dashboard
     Route::get('/api/realtime-orders', [AdminController::class, 'realtimeOrders'])->name('admin.api.realtime-orders');
 

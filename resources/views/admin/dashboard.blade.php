@@ -42,6 +42,7 @@
     @include('admin.partials.sidebar')
 
     <main class="px-4 py-6 sm:px-5 sm:py-8 lg:px-8 xl:px-10">
+        
         <!-- Breadcrumb -->
         <nav class="mb-6 sm:mb-8 flex items-center space-x-2 text-xs sm:text-sm font-medium text-slate-500" data-animate="fade-in-down" data-delay="0">
             <span class="font-semibold text-slate-900">Dashboard Manajemen</span>

@@ -93,6 +93,7 @@
             @php
                 $navLinks = [
                     ['route' => 'admin.dashboard',    'pattern' => 'admin.dashboard',    'label' => 'Dashboard', 'sub' => 'Overview'],
+                    ['route' => 'admin.analytics',     'pattern' => 'admin.analytics',     'label' => 'Analytics',  'sub' => 'Laporan'],
                     ['route' => 'admin.products.index','pattern' => 'admin.products.*',   'label' => 'Produk',    'sub' => 'Catalog'],
                     ['route' => 'admin.orders',        'pattern' => 'admin.orders',        'label' => 'Pesanan',   'sub' => 'Monitor'],
                     ['route' => 'admin.testimonials',  'pattern' => 'admin.testimonials',  'label' => 'Testimoni', 'sub' => 'Moderasi'],

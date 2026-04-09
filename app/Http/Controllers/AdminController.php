@@ -45,6 +45,112 @@ class AdminController extends Controller
     }
 
     // =========================================================================
+    // ★ ANALYTICS
+    // =========================================================================
+
+    public function analytics(Request $request)
+    {
+        $period    = (int) $request->get('period', 30);
+        $startDate = now('Asia/Jakarta')->subDays($period)->startOfDay();
+        $endDate   = now('Asia/Jakarta')->endOfDay();
+
+        $periodOrders = Order::whereBetween('created_at', [$startDate, $endDate])->get();
+
+        // ── KPI Cards ─────────────────────────────────────────────────────────
+        $totalRevenue    = $periodOrders->where('status', Order::STATUS_COMPLETED)->sum('total_price');
+        $totalOrders     = $periodOrders->count();
+        $completedOrders = $periodOrders->where('status', Order::STATUS_COMPLETED)->count();
+        $cancelledOrders = $periodOrders->where('status', Order::STATUS_CANCELLED)->count();
+        $conversionRate  = $totalOrders > 0 ? round(($completedOrders / $totalOrders) * 100, 1) : 0;
+        $avgOrderValue   = $completedOrders > 0 ? round($totalRevenue / $completedOrders) : 0;
+
+        $totalCustomers = User::where('role', 'customer')->count();
+        $newCustomers   = User::where('role', 'customer')
+            ->whereBetween('created_at', [$startDate, $endDate])->count();
+
+        // ── Revenue & Order Trend (daily) ─────────────────────────────────────
+        $trendLabels = $trendRevenue = $trendOrders = [];
+        $days = min($period, 30);
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $day            = now('Asia/Jakarta')->subDays($i);
+            $trendLabels[]  = $day->translatedFormat('d M');
+            $trendRevenue[] = (int) $periodOrders
+                ->where('status', Order::STATUS_COMPLETED)
+                ->filter(fn ($o) => $o->created_at->isSameDay($day))
+                ->sum('total_price');
+            $trendOrders[]  = $periodOrders
+                ->filter(fn ($o) => $o->created_at->isSameDay($day))
+                ->count();
+        }
+
+        // ── Status Distribution ───────────────────────────────────────────────
+        $statusCounts = [
+            'pending'    => $periodOrders->where('status', Order::STATUS_PENDING)->count(),
+            'processing' => $periodOrders->where('status', Order::STATUS_PROCESSING)->count(),
+            'delivering' => $periodOrders->where('status', Order::STATUS_DELIVERING)->count(),
+            'completed'  => $completedOrders,
+            'cancelled'  => $cancelledOrders,
+        ];
+
+        // ── Top Products ──────────────────────────────────────────────────────
+        $topProducts = $periodOrders
+            ->flatMap(fn (Order $o) => $o->items_summary)
+            ->groupBy('product_name')
+            ->map(fn ($items, $name) => [
+                'name'     => $name,
+                'quantity' => (float) $items->sum('quantity'),
+                'revenue'  => (float) $items->sum('subtotal'),
+            ])
+            ->sortByDesc('revenue')
+            ->take(8)
+            ->values();
+
+        // ── Payment Method ────────────────────────────────────────────────────
+        $paymentMethods = $periodOrders
+            ->groupBy('payment_method')
+            ->map(fn ($items, $method) => [
+                'method' => $method ?: 'Tidak Diketahui',
+                'count'  => $items->count(),
+            ])
+            ->sortByDesc('count')
+            ->values();
+
+        // ── Peak Hour Analysis ────────────────────────────────────────────────
+        $hourlyOrders = array_fill(0, 24, 0);
+        foreach ($periodOrders as $order) {
+            $hour = (int) $order->created_at->setTimezone('Asia/Jakarta')->format('G');
+            $hourlyOrders[$hour]++;
+        }
+
+        // ── Weekly Pattern ────────────────────────────────────────────────────
+        $weeklyLabels  = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        $weeklyOrders  = array_fill(0, 7, 0);
+        $weeklyRevenue = array_fill(0, 7, 0);
+        foreach ($periodOrders as $order) {
+            $dow = (int) $order->created_at->format('w');
+            $weeklyOrders[$dow]++;
+            if ($order->status === Order::STATUS_COMPLETED) {
+                $weeklyRevenue[$dow] += $order->total_price;
+            }
+        }
+
+        // ── Top High-Value Orders ─────────────────────────────────────────────
+        $topOrders = $periodOrders
+            ->where('status', Order::STATUS_COMPLETED)
+            ->sortByDesc('total_price')
+            ->take(5);
+
+        return view('admin.analytics', compact(
+            'period', 'totalRevenue', 'totalOrders', 'completedOrders', 'cancelledOrders',
+            'conversionRate', 'avgOrderValue', 'totalCustomers', 'newCustomers',
+            'trendLabels', 'trendRevenue', 'trendOrders',
+            'statusCounts', 'topProducts', 'paymentMethods',
+            'hourlyOrders', 'weeklyLabels', 'weeklyOrders', 'weeklyRevenue',
+            'topOrders'
+        ));
+    }
+
+    // =========================================================================
     // ★ CUSTOMER MANAGEMENT
     // =========================================================================
 
@@ -141,19 +247,19 @@ class AdminController extends Controller
             ->take(8)
             ->get()
             ->map(fn (Order $order) => [
-                'id'            => $order->id,
-                'reference'     => $order->reference ?? 'N/A',
-                'customer_name' => $order->customer_name ?? 'N/A',
-                'customer_phone'=> $order->customer_phone ?? '-',
-                'status'        => $order->status,
-                'status_label'  => $order->status_label ?? ucfirst($order->status),
-                'status_color'  => $order->status_color ?? 'text-slate-600',
-                'total_price'   => $order->total_price ?? 0,
+                'id'              => $order->id,
+                'reference'       => $order->reference ?? 'N/A',
+                'customer_name'   => $order->customer_name ?? 'N/A',
+                'customer_phone'  => $order->customer_phone ?? '-',
+                'status'          => $order->status,
+                'status_label'    => $order->status_label ?? ucfirst($order->status),
+                'status_color'    => $order->status_color ?? 'text-slate-600',
+                'total_price'     => $order->total_price ?? 0,
                 'total_formatted' => 'Rp ' . number_format($order->total_price ?? 0, 0, ',', '.'),
-                'items_count'   => is_array($order->items_summary) ? count($order->items_summary) : 0,
-                'created_at'    => $order->created_at?->toISOString(),
-                'created_ago'   => $order->created_at?->diffForHumans(),
-                'url'           => route('admin.orders') . '?reference=' . urlencode($order->reference ?? ''),
+                'items_count'     => is_array($order->items_summary) ? count($order->items_summary) : 0,
+                'created_at'      => $order->created_at?->toISOString(),
+                'created_ago'     => $order->created_at?->diffForHumans(),
+                'url'             => route('admin.orders') . '?reference=' . urlencode($order->reference ?? ''),
             ]);
 
         $latestId = Order::latest()->value('id') ?? 0;
