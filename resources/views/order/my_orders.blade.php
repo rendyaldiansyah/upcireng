@@ -51,20 +51,22 @@
 <div class="mx-auto max-w-5xl">
 
     {{-- ── Page Header ── --}}
-    <div class="mb-6 rounded-2xl bg-white border border-orange-100 shadow-lg shadow-orange-100/40 p-6 sm:p-7">
-        <p class="text-[10px] font-extrabold uppercase tracking-[.3em] text-orange-500 mb-1">Pesanan Saya</p>
-        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div>
-                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">Riwayat Pesanan</h1>
-                <p class="mt-1 text-sm text-slate-500">Ketuk kartu untuk melihat detail & kirim ke WhatsApp.</p>
+    <div class="mb-6 rounded-2xl bg-white border border-orange-100 shadow-lg shadow-orange-100/40 p-5 sm:p-7">
+        <div class="flex items-start justify-between gap-3">
+            {{-- Teks kiri --}}
+            <div class="min-w-0">
+                <p class="text-[10px] font-extrabold uppercase tracking-[.3em] text-orange-500 mb-1">Pesanan Saya</p>
+                <h1 class="text-xl sm:text-3xl font-black text-slate-900 leading-tight">Riwayat Pesanan</h1>
+                <p class="mt-1 text-xs sm:text-sm text-slate-500 leading-relaxed">Ketuk kartu untuk melihat detail & kirim ke WhatsApp.</p>
             </div>
-            <div class="flex flex-wrap gap-2">
+            {{-- Tombol kanan — selalu sejajar di semua ukuran layar --}}
+            <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
                 <a href="{{ route('home') }}"
-                   class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:border-orange-300 hover:text-orange-600 transition-colors whitespace-nowrap">
-                    ← Kembali ke Toko
+                   class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-slate-600 hover:border-orange-300 hover:text-orange-600 transition-colors whitespace-nowrap">
+                    ← Kembali
                 </a>
                 <a href="https://wa.me/{{ $waPhone }}" target="_blank" rel="noopener"
-                   class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600 transition-colors shadow-sm whitespace-nowrap">
+                   class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-emerald-600 transition-colors shadow-sm whitespace-nowrap">
                     💬 Hubungi Admin
                 </a>
             </div>
