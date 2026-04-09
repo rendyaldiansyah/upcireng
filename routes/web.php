@@ -19,6 +19,8 @@ Route::post('/api/checkout', [OrderController::class, 'store'])->name('api.check
 // Distance check
 Route::post('/api/check-distance', [DeliveryController::class, 'checkDistance'])->name('api.check.distance');
 Route::post('/api/check-distance-coords', [DeliveryController::class, 'checkDistanceByCoords'])->name('api.check.distance.coords');
+Route::post('/adminup/analytics/send-sheet', [AdminController::class, 'sendToSheet'])
+    ->name('admin.analytics.send-sheet');
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');

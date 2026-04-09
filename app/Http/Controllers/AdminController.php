@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Models\Testimonial;
 use App\Services\DailyRecapService;
+use App\Services\GoogleSheetService;
 use App\Services\OrderWorkflowService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -30,9 +31,8 @@ class AdminController extends Controller
         $topProducts  = $this->topProducts($orders);
         $dailyRecap   = app(DailyRecapService::class)->buildMessage(now('Asia/Jakarta'));
 
-        // ★ Statistik customer untuk dashboard
-        $totalCustomers  = User::where('role', 'customer')->count();
-        $newCustomers    = User::where('role', 'customer')
+        $totalCustomers = User::where('role', 'customer')->count();
+        $newCustomers   = User::where('role', 'customer')
                               ->whereDate('created_at', today())
                               ->count();
 
@@ -45,7 +45,7 @@ class AdminController extends Controller
     }
 
     // =========================================================================
-    // ★ ANALYTICS
+    // ★ ANALYTICS — v2 (multi-metric, tidak bergantung ke selesai)
     // =========================================================================
 
     public function analytics(Request $request)
@@ -56,47 +56,72 @@ class AdminController extends Controller
 
         $periodOrders = Order::whereBetween('created_at', [$startDate, $endDate])->get();
 
-        // ── KPI Cards ─────────────────────────────────────────────────────────
-        $totalRevenue    = $periodOrders->where('status', Order::STATUS_COMPLETED)->sum('total_price');
+        // ── Revenue breakdown ──────────────────────────────────────────────────
+        $grossRevenue   = $periodOrders->sum('total_price');
+        $netRevenue     = $periodOrders->where('status', Order::STATUS_COMPLETED)->sum('total_price');
+        $pendingRevenue = $periodOrders
+            ->whereNotIn('status', [Order::STATUS_COMPLETED, Order::STATUS_CANCELLED])
+            ->sum('total_price');
+
+        // ── Order counts ───────────────────────────────────────────────────────
         $totalOrders     = $periodOrders->count();
         $completedOrders = $periodOrders->where('status', Order::STATUS_COMPLETED)->count();
         $cancelledOrders = $periodOrders->where('status', Order::STATUS_CANCELLED)->count();
-        $conversionRate  = $totalOrders > 0 ? round(($completedOrders / $totalOrders) * 100, 1) : 0;
-        $avgOrderValue   = $completedOrders > 0 ? round($totalRevenue / $completedOrders) : 0;
+        $processingCount = $periodOrders->where('status', Order::STATUS_PROCESSING)->count();
+        $deliveringCount = $periodOrders->where('status', Order::STATUS_DELIVERING)->count();
+        $pendingCount    = $periodOrders->where('status', Order::STATUS_PENDING)->count();
 
+        // ── Conversion & avg (dari semua order, bukan cuma selesai) ───────────
+        $conversionRate = $totalOrders > 0 ? round(($completedOrders / $totalOrders) * 100, 1) : 0;
+        $avgOrderValue  = $totalOrders > 0 ? round($grossRevenue / $totalOrders) : 0;
+
+        // ── Repeat customer % ──────────────────────────────────────────────────
+        $phoneGroups     = $periodOrders->whereNotNull('customer_phone')->groupBy('customer_phone');
+        $uniqueCustomers = $phoneGroups->count();
+        $repeatCustomers = $phoneGroups->filter(fn($g) => $g->count() > 1)->count();
+        $repeatRate      = $uniqueCustomers > 0 ? round($repeatCustomers / $uniqueCustomers * 100, 1) : 0;
+
+        // ── Conversion Funnel ─────────────────────────────────────────────────
+        $funnel = [
+            ['label' => 'Pesanan Masuk', 'count' => $totalOrders,     'color' => 'orange'],
+            ['label' => 'Diproses',       'count' => $processingCount, 'color' => 'blue'],
+            ['label' => 'Dikirim',        'count' => $deliveringCount, 'color' => 'purple'],
+            ['label' => 'Selesai',        'count' => $completedOrders, 'color' => 'green'],
+            ['label' => 'Dibatalkan',     'count' => $cancelledOrders, 'color' => 'red'],
+        ];
+
+        // ── Customer stats ─────────────────────────────────────────────────────
         $totalCustomers = User::where('role', 'customer')->count();
         $newCustomers   = User::where('role', 'customer')
             ->whereBetween('created_at', [$startDate, $endDate])->count();
 
-        // ── Revenue & Order Trend (daily) ─────────────────────────────────────
-        $trendLabels = $trendRevenue = $trendOrders = [];
+        // ── Daily revenue trend (gross + net) ──────────────────────────────────
+        $trendLabels = $trendRevenue = $trendNetRevenue = $trendOrders = [];
         $days = min($period, 30);
         for ($i = $days - 1; $i >= 0; $i--) {
-            $day            = now('Asia/Jakarta')->subDays($i);
-            $trendLabels[]  = $day->translatedFormat('d M');
-            $trendRevenue[] = (int) $periodOrders
-                ->where('status', Order::STATUS_COMPLETED)
-                ->filter(fn ($o) => $o->created_at->isSameDay($day))
-                ->sum('total_price');
-            $trendOrders[]  = $periodOrders
-                ->filter(fn ($o) => $o->created_at->isSameDay($day))
-                ->count();
+            $day       = now('Asia/Jakarta')->subDays($i);
+            $dayOrders = $periodOrders->filter(fn($o) => $o->created_at->isSameDay($day));
+
+            $trendLabels[]     = $day->translatedFormat('d M');
+            $trendRevenue[]    = (int) $dayOrders->sum('total_price');
+            $trendNetRevenue[] = (int) $dayOrders->where('status', Order::STATUS_COMPLETED)->sum('total_price');
+            $trendOrders[]     = $dayOrders->count();
         }
 
-        // ── Status Distribution ───────────────────────────────────────────────
+        // ── Status distribution ────────────────────────────────────────────────
         $statusCounts = [
-            'pending'    => $periodOrders->where('status', Order::STATUS_PENDING)->count(),
-            'processing' => $periodOrders->where('status', Order::STATUS_PROCESSING)->count(),
-            'delivering' => $periodOrders->where('status', Order::STATUS_DELIVERING)->count(),
+            'pending'    => $pendingCount,
+            'processing' => $processingCount,
+            'delivering' => $deliveringCount,
             'completed'  => $completedOrders,
             'cancelled'  => $cancelledOrders,
         ];
 
-        // ── Top Products ──────────────────────────────────────────────────────
+        // ── Top products (ALL orders, bukan cuma selesai) ──────────────────────
         $topProducts = $periodOrders
-            ->flatMap(fn (Order $o) => $o->items_summary)
+            ->flatMap(fn(Order $o) => $o->items_summary)
             ->groupBy('product_name')
-            ->map(fn ($items, $name) => [
+            ->map(fn($items, $name) => [
                 'name'     => $name,
                 'quantity' => (float) $items->sum('quantity'),
                 'revenue'  => (float) $items->sum('subtotal'),
@@ -105,45 +130,45 @@ class AdminController extends Controller
             ->take(8)
             ->values();
 
-        // ── Payment Method ────────────────────────────────────────────────────
+        // ── Payment methods ────────────────────────────────────────────────────
         $paymentMethods = $periodOrders
             ->groupBy('payment_method')
-            ->map(fn ($items, $method) => [
+            ->map(fn($items, $method) => [
                 'method' => $method ?: 'Tidak Diketahui',
                 'count'  => $items->count(),
             ])
             ->sortByDesc('count')
             ->values();
 
-        // ── Peak Hour Analysis ────────────────────────────────────────────────
+        // ── Hourly ────────────────────────────────────────────────────────────
         $hourlyOrders = array_fill(0, 24, 0);
         foreach ($periodOrders as $order) {
-            $hour = (int) $order->created_at->setTimezone('Asia/Jakarta')->format('G');
-            $hourlyOrders[$hour]++;
+            $hourlyOrders[(int) $order->created_at->setTimezone('Asia/Jakarta')->format('G')]++;
         }
 
-        // ── Weekly Pattern ────────────────────────────────────────────────────
+        // ── Weekly ────────────────────────────────────────────────────────────
         $weeklyLabels  = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
         $weeklyOrders  = array_fill(0, 7, 0);
         $weeklyRevenue = array_fill(0, 7, 0);
         foreach ($periodOrders as $order) {
             $dow = (int) $order->created_at->format('w');
             $weeklyOrders[$dow]++;
-            if ($order->status === Order::STATUS_COMPLETED) {
-                $weeklyRevenue[$dow] += $order->total_price;
-            }
+            $weeklyRevenue[$dow] += $order->total_price; // gross
         }
 
-        // ── Top High-Value Orders ─────────────────────────────────────────────
-        $topOrders = $periodOrders
-            ->where('status', Order::STATUS_COMPLETED)
-            ->sortByDesc('total_price')
-            ->take(5);
+        // ── Top orders (ALL, bukan cuma selesai) ──────────────────────────────
+        $topOrders = $periodOrders->sortByDesc('total_price')->take(5);
 
         return view('admin.analytics', compact(
-            'period', 'totalRevenue', 'totalOrders', 'completedOrders', 'cancelledOrders',
-            'conversionRate', 'avgOrderValue', 'totalCustomers', 'newCustomers',
-            'trendLabels', 'trendRevenue', 'trendOrders',
+            'period',
+            'grossRevenue', 'netRevenue', 'pendingRevenue',
+            'totalOrders', 'completedOrders', 'cancelledOrders',
+            'processingCount', 'deliveringCount', 'pendingCount',
+            'conversionRate', 'avgOrderValue',
+            'uniqueCustomers', 'repeatCustomers', 'repeatRate',
+            'funnel',
+            'totalCustomers', 'newCustomers',
+            'trendLabels', 'trendRevenue', 'trendNetRevenue', 'trendOrders',
             'statusCounts', 'topProducts', 'paymentMethods',
             'hourlyOrders', 'weeklyLabels', 'weeklyOrders', 'weeklyRevenue',
             'topOrders'
@@ -151,125 +176,107 @@ class AdminController extends Controller
     }
 
     // =========================================================================
-    // ★ CUSTOMER MANAGEMENT
+    // ★ KIRIM KE GOOGLE SHEET
     // =========================================================================
 
-    /**
-     * Daftar semua customer dengan rincian.
-     */
-    public function customers(Request $request)
+    public function sendToSheet(Request $request)
     {
-        $query = User::where('role', 'customer')->withCount('orders')->latest();
-
-        if ($request->filled('search')) {
-            $search = '%' . $request->search . '%';
-            $query->where(function ($q) use ($search) {
-                $q->where('name',  'like', $search)
-                  ->orWhere('phone', 'like', $search)
-                  ->orWhere('email', 'like', $search);
-            });
-        }
-
-        $customers = $query->paginate(20)->withQueryString();
-
-        $stats = [
-            'total'   => User::where('role', 'customer')->count(),
-            'today'   => User::where('role', 'customer')->whereDate('created_at', today())->count(),
-            'week'    => User::where('role', 'customer')->whereBetween('created_at', [now()->startOfWeek(), now()])->count(),
-        ];
-
-        return view('admin.customers', compact('customers', 'stats'));
-    }
-
-    /**
-     * Detail customer + riwayat pesanannya.
-     */
-    public function customerDetail(User $customer)
-    {
-        abort_if($customer->role !== 'customer', 404);
-
-        $orders = Order::where('customer_phone', $customer->phone)
-                       ->orWhere('user_id', $customer->id)
-                       ->latest()
-                       ->get();
-
-        $totalSpent = $orders->where('status', Order::STATUS_COMPLETED)->sum('total_price');
-
-        return view('admin.customer_detail', compact('customer', 'orders', 'totalSpent'));
-    }
-
-    /**
-     * Update data customer (nama, email, phone).
-     */
-    public function updateCustomer(Request $request, User $customer)
-    {
-        abort_if($customer->role !== 'customer', 404);
-
-        $validated = $request->validate([
-            'name'  => 'required|string|min:2|max:100',
-            'email' => 'nullable|email|max:150|unique:users,email,' . $customer->id,
-            'phone' => 'required|string|min:8|max:20',
-        ]);
-
-        $customer->update($validated);
-
-        return back()->with('success', 'Data customer berhasil diperbarui.');
-    }
-
-    /**
-     * Hapus customer.
-     */
-    public function deleteCustomer(User $customer)
-    {
-        abort_if($customer->role !== 'customer', 404);
-
         try {
-            $customer->delete();
-            return redirect()->route('admin.customers')->with('success', 'Customer berhasil dihapus.');
+            $period    = (int) $request->get('period', 30);
+            $startDate = now('Asia/Jakarta')->subDays($period)->startOfDay();
+            $endDate   = now('Asia/Jakarta')->endOfDay();
+
+            $periodOrders = Order::whereBetween('created_at', [$startDate, $endDate])->latest()->get();
+
+            // Build rows
+            $rows = $periodOrders->map(fn(Order $o) => [
+                $o->id,
+                $o->reference ?? '',
+                $o->created_at?->setTimezone('Asia/Jakarta')->format('d/m/Y H:i'),
+                $o->customer_name  ?? '',
+                $o->customer_phone ?? '',
+                $o->customer_email ?? '',
+                collect($o->items_summary)->pluck('product_name')->join(', '),
+                (float) collect($o->items_summary)->sum('quantity'),
+                (float) $o->total_price,
+                $o->payment_method ?? '',
+                $o->status_label   ?? ucfirst($o->status),
+                $o->delivery_address ?? '',
+                $o->notes            ?? '',
+                $o->cancel_reason    ?? '',
+                $o->completed_at?->setTimezone('Asia/Jakarta')->format('d/m/Y H:i') ?? '',
+            ])->values()->toArray();
+
+            // Build analytics payload
+            $grossRevenue    = $periodOrders->sum('total_price');
+            $netRevenue      = $periodOrders->where('status', Order::STATUS_COMPLETED)->sum('total_price');
+            $pendingRevenue  = $periodOrders->whereNotIn('status', [Order::STATUS_COMPLETED, Order::STATUS_CANCELLED])->sum('total_price');
+            $totalOrders     = $periodOrders->count();
+            $completedOrders = $periodOrders->where('status', Order::STATUS_COMPLETED)->count();
+            $cancelledOrders = $periodOrders->where('status', Order::STATUS_CANCELLED)->count();
+
+            $phoneGroups     = $periodOrders->whereNotNull('customer_phone')->groupBy('customer_phone');
+            $uniqueCustomers = $phoneGroups->count();
+            $repeatCustomers = $phoneGroups->filter(fn($g) => $g->count() > 1)->count();
+
+            $dailyRevenue = [];
+            for ($i = min($period, 30) - 1; $i >= 0; $i--) {
+                $day       = now('Asia/Jakarta')->subDays($i);
+                $dayOrders = $periodOrders->filter(fn($o) => $o->created_at->isSameDay($day));
+                $dailyRevenue[] = [
+                    'date'    => $day->format('d M'),
+                    'revenue' => (float) $dayOrders->sum('total_price'),
+                    'orders'  => $dayOrders->count(),
+                ];
+            }
+
+            $topProducts = $periodOrders
+                ->flatMap(fn(Order $o) => $o->items_summary)
+                ->groupBy('product_name')
+                ->map(fn($items, $name) => [
+                    'name'    => $name,
+                    'revenue' => (float) $items->sum('subtotal'),
+                    'qty'     => (float) $items->sum('quantity'),
+                ])
+                ->sortByDesc('revenue')->take(10)->values()->toArray();
+
+            $analytics = [
+                'gross_revenue'        => (float) $grossRevenue,
+                'net_revenue'          => (float) $netRevenue,
+                'pending_revenue'      => (float) $pendingRevenue,
+                'total_revenue'        => (float) $grossRevenue,
+                'total_orders'         => $totalOrders,
+                'completed_orders'     => $completedOrders,
+                'cancelled_orders'     => $cancelledOrders,
+                'processing_orders'    => $periodOrders->where('status', Order::STATUS_PROCESSING)->count(),
+                'shipped_orders'       => $periodOrders->where('status', Order::STATUS_DELIVERING)->count(),
+                'pending_orders'       => $periodOrders->where('status', Order::STATUS_PENDING)->count(),
+                'avg_order_value'      => $totalOrders > 0 ? round($grossRevenue / $totalOrders) : 0,
+                'conversion_rate'      => $totalOrders > 0 ? round($completedOrders / $totalOrders * 100, 1) : 0,
+                'unique_customers'     => $uniqueCustomers,
+                'repeat_customers'     => $repeatCustomers,
+                'repeat_customer_rate' => $uniqueCustomers > 0 ? round($repeatCustomers / $uniqueCustomers * 100, 1) : 0,
+                'daily_revenue'        => $dailyRevenue,
+                'top_products'         => $topProducts,
+                'status_counts'        => [
+                    'Pending'    => $periodOrders->where('status', Order::STATUS_PENDING)->count(),
+                    'Diproses'   => $periodOrders->where('status', Order::STATUS_PROCESSING)->count(),
+                    'Dikirim'    => $periodOrders->where('status', Order::STATUS_DELIVERING)->count(),
+                    'Selesai'    => $completedOrders,
+                    'Dibatalkan' => $cancelledOrders,
+                ],
+            ];
+
+            $result = app(GoogleSheetService::class)->bulkSync($rows, $analytics);
+
+            return $result['success'] ?? false
+                ? back()->with('success', '✅ Berhasil dikirim ke Google Sheet! (' . count($rows) . ' order, periode ' . $period . ' hari)')
+                : back()->with('error', 'Gagal: ' . ($result['message'] ?? 'Unknown error'));
+
         } catch (\Throwable $e) {
-            Log::error('Customer deletion failed', ['customer_id' => $customer->id, 'message' => $e->getMessage()]);
-            return back()->with('error', 'Gagal menghapus customer.');
+            Log::error('sendToSheet error', ['msg' => $e->getMessage()]);
+            return back()->with('error', 'Error: ' . $e->getMessage());
         }
-    }
-
-    // =========================================================================
-    // ★ REALTIME ORDERS API
-    // =========================================================================
-
-    /**
-     * API endpoint untuk polling realtime pesanan terkini di dashboard admin.
-     * Dipanggil setiap 5 detik oleh JS.
-     */
-    public function realtimeOrders()
-    {
-        $orders = Order::query()
-            ->latest()
-            ->take(8)
-            ->get()
-            ->map(fn (Order $order) => [
-                'id'              => $order->id,
-                'reference'       => $order->reference ?? 'N/A',
-                'customer_name'   => $order->customer_name ?? 'N/A',
-                'customer_phone'  => $order->customer_phone ?? '-',
-                'status'          => $order->status,
-                'status_label'    => $order->status_label ?? ucfirst($order->status),
-                'status_color'    => $order->status_color ?? 'text-slate-600',
-                'total_price'     => $order->total_price ?? 0,
-                'total_formatted' => 'Rp ' . number_format($order->total_price ?? 0, 0, ',', '.'),
-                'items_count'     => is_array($order->items_summary) ? count($order->items_summary) : 0,
-                'created_at'      => $order->created_at?->toISOString(),
-                'created_ago'     => $order->created_at?->diffForHumans(),
-                'url'             => route('admin.orders') . '?reference=' . urlencode($order->reference ?? ''),
-            ]);
-
-        $latestId = Order::latest()->value('id') ?? 0;
-
-        return response()->json([
-            'orders'    => $orders,
-            'latest_id' => $latestId,
-            'total'     => Order::count(),
-            'pending'   => Order::where('status', Order::STATUS_PENDING)->count(),
-        ]);
     }
 
     // =========================================================================
@@ -279,28 +286,13 @@ class AdminController extends Controller
     public function orders(Request $request)
     {
         $query = Order::query()->latest();
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
+        if ($request->filled('status'))    $query->where('status', $request->status);
         if ($request->filled('search')) {
-            $search = '%' . $request->search . '%';
-            $query->where(function ($builder) use ($search): void {
-                $builder->where('reference',      'like', $search)
-                        ->orWhere('customer_name',  'like', $search)
-                        ->orWhere('customer_email', 'like', $search)
-                        ->orWhere('customer_phone', 'like', $search);
-            });
+            $s = '%' . $request->search . '%';
+            $query->where(fn($b) => $b->where('reference','like',$s)->orWhere('customer_name','like',$s)->orWhere('customer_email','like',$s)->orWhere('customer_phone','like',$s));
         }
-
-        if ($request->filled('from_date')) {
-            $query->whereDate('created_at', '>=', $request->from_date);
-        }
-
-        if ($request->filled('to_date')) {
-            $query->whereDate('created_at', '<=', $request->to_date);
-        }
+        if ($request->filled('from_date')) $query->whereDate('created_at', '>=', $request->from_date);
+        if ($request->filled('to_date'))   $query->whereDate('created_at', '<=', $request->to_date);
 
         $orders = $query->paginate(15)->withQueryString();
         $statusCounts = [
@@ -310,7 +302,6 @@ class AdminController extends Controller
             Order::STATUS_COMPLETED  => Order::where('status', Order::STATUS_COMPLETED)->count(),
             Order::STATUS_CANCELLED  => Order::where('status', Order::STATUS_CANCELLED)->count(),
         ];
-
         return view('admin.orders', compact('orders', 'statusCounts'));
     }
 
@@ -320,25 +311,17 @@ class AdminController extends Controller
             'status'        => 'required|in:' . implode(',', Order::statusOptions()),
             'cancel_reason' => 'nullable|string|max:500',
         ]);
-
         try {
-            $previousStatus = $order->status;
-
+            $prev = $order->status;
             $order->update([
                 'status'        => $validated['status'],
-                'cancel_reason' => $validated['status'] === Order::STATUS_CANCELLED
-                    ? ($validated['cancel_reason'] ?? $order->cancel_reason)
-                    : null,
-                'completed_at'  => $validated['status'] === Order::STATUS_COMPLETED
-                    ? now('Asia/Jakarta')
-                    : null,
+                'cancel_reason' => $validated['status'] === Order::STATUS_CANCELLED ? ($validated['cancel_reason'] ?? $order->cancel_reason) : null,
+                'completed_at'  => $validated['status'] === Order::STATUS_COMPLETED ? now('Asia/Jakarta') : null,
             ]);
-
-            $workflow->handleStatusChange($order->fresh(), $previousStatus);
-
+            $workflow->handleStatusChange($order->fresh(), $prev);
             return back()->with('success', 'Status pesanan berhasil diperbarui.');
-        } catch (\Throwable $exception) {
-            Log::error('Order status update failed', ['order_id' => $order->id, 'message' => $exception->getMessage()]);
+        } catch (\Throwable $e) {
+            Log::error('Order status update failed', ['id' => $order->id, 'msg' => $e->getMessage()]);
             return back()->with('error', 'Gagal memperbarui status pesanan.');
         }
     }
@@ -349,8 +332,8 @@ class AdminController extends Controller
             $workflow->handleDeleted($order);
             $order->delete();
             return back()->with('success', 'Pesanan berhasil dihapus.');
-        } catch (\Throwable $exception) {
-            Log::error('Order deletion failed', ['order_id' => $order->id, 'message' => $exception->getMessage()]);
+        } catch (\Throwable $e) {
+            Log::error('Order deletion failed', ['id' => $order->id, 'msg' => $e->getMessage()]);
             return back()->with('error', 'Gagal menghapus pesanan.');
         }
     }
@@ -362,77 +345,57 @@ class AdminController extends Controller
     public function testimonials(Request $request)
     {
         $query = Testimonial::query()->latest();
-
-        if ($request->filled('approval')) {
-            $query->where('is_approved', $request->approval === 'approved');
-        }
-
+        if ($request->filled('approval')) $query->where('is_approved', $request->approval === 'approved');
         if ($request->filled('search')) {
-            $search = '%' . $request->search . '%';
-            $query->where(function ($builder) use ($search): void {
-                $builder->where('customer_name', 'like', $search)
-                        ->orWhere('message', 'like', $search);
-            });
+            $s = '%' . $request->search . '%';
+            $query->where(fn($b) => $b->where('customer_name','like',$s)->orWhere('message','like',$s));
         }
-
         $testimonials   = $query->paginate(15)->withQueryString();
-        $approvalCounts = [
-            'pending'  => Testimonial::where('is_approved', false)->count(),
-            'approved' => Testimonial::where('is_approved', true)->count(),
-        ];
-
+        $approvalCounts = ['pending' => Testimonial::where('is_approved', false)->count(), 'approved' => Testimonial::where('is_approved', true)->count()];
         return view('admin.testimonials', compact('testimonials', 'approvalCounts'));
     }
 
     public function approveTestimonial(Testimonial $testimonial)
     {
-        try {
-            $testimonial->update(['is_approved' => true]);
-            return back()->with('success', 'Testimoni berhasil disetujui.');
-        } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal menyetujui testimoni.');
-        }
+        try { $testimonial->update(['is_approved' => true]); return back()->with('success', 'Testimoni disetujui.'); }
+        catch (\Throwable $e) { return back()->with('error', 'Gagal.'); }
     }
 
     public function deleteTestimonial(Testimonial $testimonial)
     {
-        try {
-            $testimonial->delete();
-            return back()->with('success', 'Testimoni berhasil dihapus.');
-        } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal menghapus testimoni.');
-        }
+        try { $testimonial->delete(); return back()->with('success', 'Testimoni dihapus.'); }
+        catch (\Throwable $e) { return back()->with('error', 'Gagal.'); }
     }
 
     public function editTestimonial(Request $request, Testimonial $testimonial)
     {
         try {
-            $validated = $request->validate([
-                'message'     => 'required|string|min:10|max:1000',
-                'rating'      => 'required|integer|min:1|max:5',
-                'is_approved' => 'nullable|boolean',
-            ]);
-
-            $testimonial->update([
-                'message'     => $validated['message'],
-                'rating'      => $validated['rating'],
-                'is_approved' => (bool) ($validated['is_approved'] ?? $testimonial->is_approved),
-            ]);
-
-            return back()->with('success', 'Testimoni berhasil diperbarui.');
-        } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal memperbarui testimoni.');
-        }
+            $v = $request->validate(['message' => 'required|string|min:10|max:1000', 'rating' => 'required|integer|min:1|max:5', 'is_approved' => 'nullable|boolean']);
+            $testimonial->update(['message' => $v['message'], 'rating' => $v['rating'], 'is_approved' => (bool) ($v['is_approved'] ?? $testimonial->is_approved)]);
+            return back()->with('success', 'Testimoni diperbarui.');
+        } catch (\Throwable $e) { return back()->with('error', 'Gagal.'); }
     }
 
-    public function sendDailyRecap(DailyRecapService $dailyRecapService)
+    public function sendDailyRecap(DailyRecapService $svc)
     {
-        try {
-            $dailyRecapService->send(now('Asia/Jakarta'));
-            return back()->with('success', 'Rekap harian berhasil dikirim.');
-        } catch (\Throwable $exception) {
-            return back()->with('error', 'Gagal mengirim rekap harian.');
-        }
+        try { $svc->send(now('Asia/Jakarta')); return back()->with('success', 'Rekap harian dikirim.'); }
+        catch (\Throwable $e) { return back()->with('error', 'Gagal mengirim rekap.'); }
+    }
+
+    public function realtimeOrders()
+    {
+        $orders = Order::query()->latest()->take(8)->get()->map(fn(Order $o) => [
+            'id' => $o->id, 'reference' => $o->reference ?? 'N/A',
+            'customer_name' => $o->customer_name ?? 'N/A', 'customer_phone' => $o->customer_phone ?? '-',
+            'status' => $o->status, 'status_label' => $o->status_label ?? ucfirst($o->status),
+            'status_color' => $o->status_color ?? 'text-slate-600',
+            'total_price' => $o->total_price ?? 0,
+            'total_formatted' => 'Rp ' . number_format($o->total_price ?? 0, 0, ',', '.'),
+            'items_count' => is_array($o->items_summary) ? count($o->items_summary) : 0,
+            'created_at' => $o->created_at?->toISOString(), 'created_ago' => $o->created_at?->diffForHumans(),
+            'url' => route('admin.orders') . '?reference=' . urlencode($o->reference ?? ''),
+        ]);
+        return response()->json(['orders' => $orders, 'latest_id' => Order::latest()->value('id') ?? 0, 'total' => Order::count(), 'pending' => Order::where('status', Order::STATUS_PENDING)->count()]);
     }
 
     // =========================================================================
@@ -442,31 +405,20 @@ class AdminController extends Controller
     protected function buildChartData(): array
     {
         $labels = $orders = $revenue = [];
-
         for ($offset = 6; $offset >= 0; $offset--) {
             $date = now('Asia/Jakarta')->subDays($offset)->startOfDay();
             $labels[]  = $date->translatedFormat('d M');
             $orders[]  = Order::whereDate('created_at', $date->toDateString())->count();
-            $revenue[] = (int) Order::whereDate('created_at', $date->toDateString())
-                ->where('status', Order::STATUS_COMPLETED)
-                ->sum('total_price');
+            $revenue[] = (int) Order::whereDate('created_at', $date->toDateString())->where('status', Order::STATUS_COMPLETED)->sum('total_price');
         }
-
         return [$labels, $orders, $revenue];
     }
 
     protected function topProducts(Collection $orders): Collection
     {
-        return $orders
-            ->flatMap(fn (Order $order) => $order->items_summary)
+        return $orders->flatMap(fn(Order $o) => $o->items_summary)
             ->groupBy('product_name')
-            ->map(fn (Collection $items, string $name) => [
-                'name'     => $name,
-                'quantity' => (float) $items->sum('quantity'),
-                'revenue'  => (float) $items->sum('subtotal'),
-            ])
-            ->sortByDesc('quantity')
-            ->take(5)
-            ->values();
+            ->map(fn(Collection $items, string $name) => ['name' => $name, 'quantity' => (float) $items->sum('quantity'), 'revenue' => (float) $items->sum('subtotal')])
+            ->sortByDesc('quantity')->take(5)->values();
     }
 }
