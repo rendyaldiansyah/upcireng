@@ -64,6 +64,7 @@ class GoogleSheetService
 
         try {
             $response = Http::timeout(30)
+                ->asJson()  // ★ FIX: kirim sebagai JSON bukan form-encoded
                 ->post($this->webhookUrl, array_merge($payload, [
                     'api_key' => $this->apiKey,
                 ]));
