@@ -11,6 +11,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
 
+    {{-- ★ Google Analytics G-X4N5GDNXCH --}}
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-X4N5GDNXCH"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-X4N5GDNXCH');
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -146,7 +155,7 @@
         @endunless
     </div>
 
-    {{-- ★ FLOATING CART BUTTON — tampil di semua halaman storefront --}}
+    {{-- ★ FLOATING CART BUTTON --}}
     @unless($isAdmin || $hideNav)
     <button
         id="floatingCartBtn"
@@ -171,15 +180,12 @@
     @include('components.toast')
 
     <script>
-    // ── Clipboard helper — fix "Gagal menyalin" ──────────────────────────────
     function copyToClipboard(text) {
-        // Method 1: Modern Clipboard API (HTTPS / localhost)
         if (navigator.clipboard && window.isSecureContext) {
             return navigator.clipboard.writeText(text)
                 .then(function () { return true; })
                 .catch(function () { return fallbackCopy(text); });
         }
-        // Method 2: Fallback untuk HTTP / browser lama
         return Promise.resolve(fallbackCopy(text));
     }
 
@@ -199,22 +205,18 @@
         }
     }
 
-    // ── Copy buttons (nomor rekening, dll) ───────────────────────────────────
     document.addEventListener('click', function (e) {
         const btn = e.target.closest('.copy-btn');
         if (!btn) return;
         e.preventDefault();
-
         const text = btn.getAttribute('data-copy') || '';
         const original = btn.innerHTML;
-
         copyToClipboard(text).then(function (ok) {
             if (ok !== false) {
                 btn.innerHTML = '✅';
                 btn.classList.add('bg-emerald-100', 'text-emerald-700');
                 toast('✅ Berhasil disalin: ' + text, 'success');
             } else {
-                // Tampilkan teks agar user bisa copy manual
                 toast('Salin manual: ' + text, 'warning');
             }
             setTimeout(function () {
@@ -224,46 +226,31 @@
         });
     });
 
-    // ── Floating cart sync ────────────────────────────────────────────────────
     (function () {
         const floatBtn   = document.getElementById('floatingCartBtn');
         const floatCount = document.getElementById('floatingCartCount');
         if (!floatBtn) return;
-
-        // Sync dengan badge di navbar/halaman
         function syncFloatingCart() {
-            // Coba baca dari badge utama di halaman
             const mainBadge = document.getElementById('cartCountBadge');
             const count = mainBadge ? parseInt(mainBadge.textContent) || 0 : 0;
-
             if (floatCount) floatCount.textContent = count;
-
             if (count > 0) {
                 floatBtn.style.display = 'inline-flex';
                 floatBtn.style.opacity = '1';
             } else {
                 floatBtn.style.opacity = '0';
                 setTimeout(function () {
-                    if (!parseInt(floatCount?.textContent)) {
-                        floatBtn.style.display = 'none';
-                    }
+                    if (!parseInt(floatCount?.textContent)) floatBtn.style.display = 'none';
                 }, 300);
             }
         }
-
-        // Poll setiap 500ms untuk sinkron dengan cart di script.js
         setInterval(syncFloatingCart, 500);
-
-        // Klik floating cart = trigger openCartButton yang ada di halaman
         floatBtn.addEventListener('click', function () {
             const openBtn = document.getElementById('openCartButton');
-            if (openBtn && !openBtn.disabled) {
-                openBtn.click();
-            }
+            if (openBtn && !openBtn.disabled) openBtn.click();
         });
     })();
 
-    // ── Realtime Notifications ────────────────────────────────────────────────
     class RealtimeNotifications {
         constructor() {
             this.lastOrderId    = null;
@@ -307,7 +294,6 @@
                 this.playSound();
                 toast('✅ Pesanan baru Anda berhasil dibuat!', 'success');
                 this.lastOrderId = data.latest_order_id;
-                this.lastOrderCount = data.total_orders;
             }
         }
         handleAdminUpdate(data) {
@@ -320,7 +306,6 @@
                 this.playSound();
                 toast('🔔 Order baru masuk: #' + data.latest_order_id, 'info');
                 this.lastOrderId = data.latest_order_id;
-                this.lastOrderCount = data.total_orders;
             }
         }
         playSound() {
@@ -341,11 +326,9 @@
         const successMsg = {!! json_encode($successMsg) !!};
         const errorMsg   = {!! json_encode($errorMsg) !!};
         const warningMsg = {!! json_encode($warningMsg) !!};
-
         if (successMsg) toast(successMsg, 'success');
         if (errorMsg)   toast(errorMsg, 'error');
         if (warningMsg) toast(warningMsg, 'warning');
-
         window.realtimeNotifications = new RealtimeNotifications();
     });
     </script>

@@ -36,8 +36,8 @@ return [
     ],
 
     'google_sheets' => [
-        'url' => env('GOOGLE_SHEET_WEBHOOK'),
-        'api_key' => env('GOOGLE_SHEET_API_KEY'),
+        'url' => env('https://script.google.com/macros/s/AKfycbzm_rRDipRiXWFgpkEIN022PrJEew-lYHtSPa8jH1zwAr8lyaIMRqJpF-E_zQKCCK2ysQ/exec'),
+        'api_key' => env('upcireng_2018'),
     ],
 
     'telegram' => [
