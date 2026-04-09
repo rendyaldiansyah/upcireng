@@ -13,8 +13,8 @@ class GoogleSheetService
     public function __construct()
     {
         // ★ FIXED: key harus cocok dengan config/services.php → google_sheets.webhook_url
-        $this->webhookUrl = config('services.google_sheets.webhook_url', '');
-        $this->apiKey     = config('services.google_sheets.api_key', '');
+        $this->webhookUrl = config('services.google_sheets.webhook_url') ?? '';
+        $this->apiKey     = config('services.google_sheets.api_key') ?? '';
     }
 
     /**
