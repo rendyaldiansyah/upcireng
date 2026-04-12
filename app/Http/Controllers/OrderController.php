@@ -212,9 +212,9 @@ class OrderController extends Controller
             // 🔥 Broadcast realtime order notification to admin
             broadcast(new OrderCreated($order))->toOthers();
 
-            $workflow->handleCreated($order->fresh());
+            SendOrderEmails::dispatch($order);
 
-            $this->sendOrderEmails($order);
+           SyncOrderToSheet::dispatch($order, 'created');
 
             if ($request->expectsJson()) {
                 return response()->json([
@@ -406,7 +406,7 @@ class OrderController extends Controller
             'completed_at'  => null,
         ]);
 
-        $workflow->handleStatusChange($order->fresh(), $previousStatus);
+        SyncOrderToSheet::dispatch($order->fresh(), 'status_changed');
 
         return back()->with('success', 'Pesanan berhasil dibatalkan.');
     }
